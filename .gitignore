@@ -1,0 +1,20 @@
+# Backend sensitive data
+api/config/config.php
+
+# PHP related
+composer.lock
+vendor/
+*.log
+
+# Frontend build and dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.gemini/

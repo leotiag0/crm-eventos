@@ -13,7 +13,9 @@ import {
     AlertTriangle,
     CheckCircle,
     ChevronRight,
-    Layout
+    Layout,
+    Menu,
+    Bell
 } from 'lucide-react';
 
 export const Icons = {
@@ -34,5 +36,7 @@ export const Icons = {
     Success: CheckCircle,
     Error: AlertTriangle,
     Chevron: ChevronRight,
-    Layout: Layout
+    Layout: Layout,
+    Menu: Menu,
+    Notif: Bell
 };
