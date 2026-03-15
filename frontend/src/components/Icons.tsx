@@ -15,7 +15,9 @@ import {
     ChevronRight,
     Layout,
     Menu,
-    Bell
+    Bell,
+    Printer,
+    Music
 } from 'lucide-react';
 
 export const Icons = {
@@ -25,10 +27,8 @@ export const Icons = {
     Orcamentos: FileText,
     Logistica: Truck,
     Settings: Settings,
-    Theme: {
-        Dark: Moon,
-        Light: Sun
-    },
+    Sun: Sun,
+    Moon: Moon,
     Search: Search,
     Add: Plus,
     Close: X,
@@ -38,5 +38,7 @@ export const Icons = {
     Chevron: ChevronRight,
     Layout: Layout,
     Menu: Menu,
-    Notif: Bell
+    Notif: Bell,
+    Printer: Printer,
+    Logo: Music
 };
