@@ -5,10 +5,8 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "build": "npm run build:frontend",
-        "build:frontend": "cd frontend && npm install && npm run build",
-        "install:all": "npm install && cd frontend && npm install",
-        "postinstall": "npm install express http-proxy-middleware dotenv"
+        "build": "cd frontend && npm install && npm run build",
+        "install:all": "npm install && cd frontend && npm install"
     },
     "dependencies": {
         "dotenv": "^16.4.7",
