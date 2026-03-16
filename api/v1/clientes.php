@@ -26,13 +26,19 @@ switch ($method) {
         // Criar novo cliente
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['nome'])) {
-            $stmt = $pdo->prepare("INSERT INTO clientes (nome, email, telefone, cpf_cnpj, endereco) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO clientes (nome, email, telefone, cpf_cnpj, cep, logradouro, numero, complemento, bairro, cidade, uf) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['nome'],
                 $data['email'] ?? null,
                 $data['telefone'] ?? null,
                 $data['cpf_cnpj'] ?? null,
-                $data['endereco'] ?? null
+                $data['cep'] ?? null,
+                $data['logradouro'] ?? null,
+                $data['numero'] ?? null,
+                $data['complemento'] ?? null,
+                $data['bairro'] ?? null,
+                $data['cidade'] ?? null,
+                $data['uf'] ?? null
             ]);
             echo json_encode(["status" => "success", "id" => $pdo->lastInsertId()]);
         } else {
@@ -45,13 +51,19 @@ switch ($method) {
         // Atualizar cliente
         $data = json_decode(file_get_contents("php://input"), true);
         if (isset($data['id']) && !empty($data['nome'])) {
-            $stmt = $pdo->prepare("UPDATE clientes SET nome = ?, email = ?, telefone = ?, cpf_cnpj = ?, endereco = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE clientes SET nome = ?, email = ?, telefone = ?, cpf_cnpj = ?, cep = ?, logradouro = ?, numero = ?, complemento = ?, bairro = ?, cidade = ?, uf = ? WHERE id = ?");
             $stmt->execute([
                 $data['nome'],
                 $data['email'] ?? null,
                 $data['telefone'] ?? null,
                 $data['cpf_cnpj'] ?? null,
-                $data['endereco'] ?? null,
+                $data['cep'] ?? null,
+                $data['logradouro'] ?? null,
+                $data['numero'] ?? null,
+                $data['complemento'] ?? null,
+                $data['bairro'] ?? null,
+                $data['cidade'] ?? null,
+                $data['uf'] ?? null,
                 $data['id']
             ]);
             echo json_encode(["status" => "success"]);

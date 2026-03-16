@@ -54,6 +54,23 @@ switch ($type) {
         echo json_encode($stmt->fetchAll());
         break;
 
+    case 'calendario_semanal':
+        // Eventos da semana (Domingo a Sábado)
+        $startOfWeek = date('Y-m-d 00:00:00', strtotime('last sunday', strtotime('tomorrow')));
+        $endOfWeek = date('Y-m-d 23:59:59', strtotime('next saturday', strtotime('yesterday')));
+
+        $stmt = $pdo->prepare("
+            SELECT o.id, o.data_inicio, o.data_fim, o.nome_evento, o.numero_sequencial, c.nome as cliente_nome, o.status
+            FROM orcamentos o
+            JOIN clientes c ON o.cliente_id = c.id
+            WHERE o.data_inicio BETWEEN ? AND ?
+            AND o.status NOT IN ('Cancelado')
+            ORDER BY o.data_inicio ASC
+        ");
+        $stmt->execute([$startOfWeek, $endOfWeek]);
+        echo json_encode($stmt->fetchAll());
+        break;
+
     default:
         echo json_encode(["error" => "Tipo de dashboard inválido"]);
         break;

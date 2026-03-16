@@ -7,11 +7,24 @@ import { Icons } from '../components/Icons';
 const PropostaCliente: React.FC = () => {
     const { id } = useParams();
 
-    const { data: orcamento, isLoading } = useQuery({
+    const { data: orcamento, isLoading: loadingOrcamento } = useQuery({
         queryKey: ['proposta-publica', id],
         queryFn: async () => (await api.get(`/orcamentos.php?id=${id}`)).data,
         enabled: !!id,
     });
+
+    const { data: config, isLoading: loadingConfig } = useQuery({
+        queryKey: ['configuracoes-publicas'],
+        queryFn: async () => (await api.get('/configuracoes.php')).data,
+    });
+
+    React.useEffect(() => {
+        if (config?.cor_primaria) {
+            document.documentElement.style.setProperty('--color-primary', config.cor_primaria);
+        }
+    }, [config]);
+
+    const isLoading = loadingOrcamento || loadingConfig;
 
     if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center font-bold text-primary animate-pulse">PREPARANDO PROPOSTA WA PRODUÇÕES...</div>;
     if (!orcamento) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">ORÇAMENTO NÃO ENCONTRADO.</div>;
@@ -44,17 +57,23 @@ const PropostaCliente: React.FC = () => {
             {/* Header / Brand */}
             <header className="max-w-5xl mx-auto px-6 py-12 flex justify-between items-center">
                 <div className="flex items-center gap-4 text-left">
-                    <div className="size-16 rounded-2xl bg-black flex items-center justify-center text-primary shadow-2xl shadow-primary/20">
-                        {Icons.Dashboard && <Icons.Dashboard size={40} />}
+                    <div className="size-16 rounded-2xl bg-white flex items-center justify-center text-primary shadow-2xl shadow-primary/10 overflow-hidden border border-slate-100">
+                        {config?.logo_path ? (
+                            <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain p-2" />
+                        ) : (
+                            <Icons.Dashboard size={40} />
+                        )}
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">WA Produções</h1>
+                        <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">{config?.nome_empresa || 'WA Produções'}</h1>
                         <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mt-1 italic">Locação & Engenharia</p>
                     </div>
                 </div>
                 <div className="text-right">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contrato / Orçamento</p>
-                    <p className="text-2xl font-black text-black">#{orcamento.id.toString().padStart(4, '0')}</p>
+                    <p className="text-2xl font-black text-black">
+                        {orcamento.numero_sequencial ? `ORC-${new Date(orcamento.data_inicio).getFullYear()}-${String(orcamento.numero_sequencial).padStart(3, '0')}` : `#${orcamento.id.toString().padStart(4, '0')}`}
+                    </p>
                 </div>
             </header>
 
@@ -62,9 +81,9 @@ const PropostaCliente: React.FC = () => {
             <section className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 py-12 border-t border-slate-100 items-center">
                 <div className="text-left">
                     <h2 className="text-[10px] font-black uppercase text-primary tracking-[0.2em] mb-4">Investimento Técnico</h2>
-                    <h3 className="text-5xl font-black text-black leading-tight tracking-tighter uppercase">Equipamentos de<br />Alta Performance</h3>
+                    <h3 className="text-5xl font-black text-black leading-tight tracking-tighter uppercase">{orcamento.nome_evento || "Equipamentos de"}<br />{orcamento.nome_evento ? "" : "Alta Performance"}</h3>
                     <p className="mt-8 text-slate-500 font-medium leading-relaxed max-w-sm">
-                        Olá <span className="text-black font-black uppercase">{orcamento.cliente_nome}</span>, selecionamos o melhor do nosso estoque para atender à engenharia do seu evento.
+                        Olá <span className="text-black font-black uppercase">{orcamento.cliente_nome}</span>, selecionamos o melhor do nosso estoque para atender à engenharia de <span className="text-black font-black uppercase">{orcamento.nome_evento || "seu evento"}</span>.
                     </p>
 
                     <div className="mt-12 flex flex-wrap gap-12">
@@ -73,9 +92,15 @@ const PropostaCliente: React.FC = () => {
                             <p className="font-black pt-1">{new Date(orcamento.data_inicio).toLocaleDateString('pt-BR')}</p>
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cobrança</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Locação</p>
                             <p className="font-black pt-1">{orcamento.tipo_cobranca}</p>
                         </div>
+                        {orcamento.endereco_evento && (
+                            <div className="md:col-span-2">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Local da Montagem</p>
+                                <p className="font-black pt-1 uppercase text-xs">{orcamento.endereco_evento}</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -121,7 +146,7 @@ const PropostaCliente: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="font-black text-black uppercase tracking-tight leading-none">{item.equipamento_nome}</p>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 italic">Standard WA Produções</p>
+                                                {item.descricao_snapshot && <p className="text-[10px] font-medium text-slate-500 mt-2 italic">{item.descricao_snapshot}</p>}
                                             </div>
                                         </div>
                                         <div className="text-right">
@@ -156,13 +181,15 @@ const PropostaCliente: React.FC = () => {
                 <div className="max-w-xs">
                     <p className="text-[10px] font-black uppercase tracking-widest text-black mb-6">Nota Jurídica</p>
                     <p className="text-[11px] leading-relaxed font-medium">
-                        A contratação engloba locação técnica sob normas de segurança. Equipamentos segurados pela WA Produções. Eventuais danos decorrentes de mau uso por terceiros são de responsabilidade do contratante.
+                        {config?.razao_social || 'WA Produções'} - {config?.cnpj ? `CNPJ: ${config.cnpj}` : 'Contrato de Locação Técnica'}
+                        <br /><br />
+                        A contratação engloba locação técnica sob normas de segurança. Equipamentos segurados pela empresa. Eventuais danos decorrentes de mau uso por terceiros são de responsabilidade do contratante.
                     </p>
                 </div>
                 <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-black mb-6">Canais WA</p>
-                    <p className="text-sm font-bold text-black uppercase">www.waproducoes.com.br</p>
-                    <p className="text-xs font-black text-primary mt-2 uppercase italic tracking-widest">tecnologia em eventos</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-black mb-6">Canais Corporativos</p>
+                    <p className="text-sm font-bold text-black uppercase">{config?.site || 'www.waproducoes.com.br'}</p>
+                    <p className="text-xs font-black text-primary mt-2 uppercase italic tracking-widest">{config?.email_contato || 'tecnologia em eventos'}</p>
                 </div>
             </footer>
         </div>

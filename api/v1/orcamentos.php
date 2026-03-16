@@ -48,8 +48,10 @@ switch ($method) {
         // Criar novo orçamento ou Aprovar existente
         $data = json_decode(file_get_contents("php://input"), true);
         $action = $data['action'] ?? 'save'; // 'save' ou 'approve'
+        $clienteId = isset($data['cliente_id']) ? intval($data['cliente_id']) : 0;
+        $itens = $data['itens'] ?? [];
 
-        if (!empty($data['cliente_id']) && !empty($data['itens'])) {
+        if ($clienteId > 0 && !empty($itens)) {
             try {
                 $pdo->beginTransaction();
 
@@ -79,41 +81,79 @@ switch ($method) {
 
                 // 2. Inserir/Atualizar Orçamento
                 $status = ($action === 'approve') ? 'Aprovado' : ($data['status'] ?? 'Rascunho');
+                $numero_sequencial = null;
+                $nomeEvento = $data['nome_evento'] ?? null;
+                $enderecoEvento = $data['endereco_evento'] ?? null;
+                $condicoesPagamento = $data['condicoes_pagamento'] ?? null;
+                $condicoesFornecimento = $data['condicoes_fornecimento'] ?? null;
 
                 if (isset($data['id'])) {
+                    $orcamentoId = $data['id'];
+
+                    // Se estiver aprovando, verificar se já tem número sequencial
+                    if ($status === 'Aprovado') {
+                        $stmtCheck = $pdo->prepare("SELECT numero_sequencial, data_inicio FROM orcamentos WHERE id = ?");
+                        $stmtCheck->execute([$orcamentoId]);
+                        $currentOrc = $stmtCheck->fetch();
+
+                        if ($currentOrc && !$currentOrc['numero_sequencial']) {
+                            $year = date('Y', strtotime($data['data_inicio'] ?? $currentOrc['data_inicio']));
+                            $stmtSeq = $pdo->prepare("SELECT MAX(numero_sequencial) as max_seq FROM orcamentos WHERE YEAR(data_inicio) = ?");
+                            $stmtSeq->execute([$year]);
+                            $rowSeq = $stmtSeq->fetch();
+                            $numero_sequencial = ($rowSeq['max_seq'] ?? 0) + 1;
+                        } else {
+                            $numero_sequencial = $currentOrc['numero_sequencial'];
+                        }
+                    }
+
                     $stmt = $pdo->prepare("
-                        UPDATE orcamentos SET cliente_id = ?, data_inicio = ?, data_fim = ?, valor_total = ?, status = ?, tipo_cobranca = ?, condicoes_pagamento = ?, condicoes_fornecimento = ? 
+                        UPDATE orcamentos SET cliente_id = ?, data_inicio = ?, data_fim = ?, valor_total = ?, status = ?, tipo_cobranca = ?, nome_evento = ?, endereco_evento = ?, condicoes_pagamento = ?, condicoes_fornecimento = ?, numero_sequencial = ? 
                         WHERE id = ?
                     ");
                     $stmt->execute([
-                        $data['cliente_id'],
+                        $clienteId,
                         $data['data_inicio'],
                         $data['data_fim'],
                         $data['valor_total'],
                         $status,
                         $data['tipo_cobranca'] ?? 'DIARIA',
-                        $data['condicoes_pagamento'] ?? null,
-                        $data['condicoes_fornecimento'] ?? null,
-                        $data['id']
+                        $nomeEvento,
+                        $enderecoEvento,
+                        $condicoesPagamento,
+                        $condicoesFornecimento,
+                        $numero_sequencial,
+                        $orcamentoId
                     ]);
-                    $orcamentoId = $data['id'];
 
-                    // Limpar itens antigos para reinserir com snapshot atualizado se for edição de rascunho
+                    // Limpar itens antigos
                     $pdo->prepare("DELETE FROM itens_orcamento WHERE orcamento_id = ?")->execute([$orcamentoId]);
                 } else {
+                    // Novo Orçamento
+                    if ($status === 'Aprovado') {
+                        $year = date('Y', strtotime($data['data_inicio']));
+                        $stmtSeq = $pdo->prepare("SELECT MAX(numero_sequencial) as max_seq FROM orcamentos WHERE YEAR(data_inicio) = ?");
+                        $stmtSeq->execute([$year]);
+                        $rowSeq = $stmtSeq->fetch();
+                        $numero_sequencial = ($rowSeq['max_seq'] ?? 0) + 1;
+                    }
+
                     $stmt = $pdo->prepare("
-                        INSERT INTO orcamentos (cliente_id, data_inicio, data_fim, valor_total, status, tipo_cobranca, condicoes_pagamento, condicoes_fornecimento) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO orcamentos (cliente_id, data_inicio, data_fim, valor_total, status, tipo_cobranca, nome_evento, endereco_evento, numero_sequencial, condicoes_pagamento, condicoes_fornecimento) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     $stmt->execute([
-                        $data['cliente_id'],
+                        $clienteId,
                         $data['data_inicio'],
                         $data['data_fim'],
                         $data['valor_total'],
                         $status,
                         $data['tipo_cobranca'] ?? 'DIARIA',
-                        $data['condicoes_pagamento'] ?? null,
-                        $data['condicoes_fornecimento'] ?? null
+                        $nomeEvento,
+                        $enderecoEvento,
+                        $numero_sequencial,
+                        $condicoesPagamento,
+                        $condicoesFornecimento
                     ]);
                     $orcamentoId = $pdo->lastInsertId();
                 }

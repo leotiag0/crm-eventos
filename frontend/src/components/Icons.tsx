@@ -17,7 +17,8 @@ import {
     Menu,
     Bell,
     Printer,
-    Music
+    Music,
+    LogOut
 } from 'lucide-react';
 
 export const Icons = {
@@ -40,5 +41,6 @@ export const Icons = {
     Menu: Menu,
     Notif: Bell,
     Printer: Printer,
-    Logo: Music
+    Logo: Music,
+    Logout: LogOut
 };

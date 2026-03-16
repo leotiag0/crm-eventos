@@ -36,6 +36,8 @@ const Equipamentos: React.FC = () => {
             descricao: formData.get('descricao'),
             valor_diaria: formData.get('valor_diaria'),
             estoque_total: formData.get('estoque_total'),
+            fabricante: formData.get('fabricante'),
+            numero_serie: formData.get('numero_serie'),
             status: formData.get('status'),
         };
         mutation.mutate(data);
@@ -67,6 +69,7 @@ const Equipamentos: React.FC = () => {
                     <thead className="bg-slate-50/50 dark:bg-slate-800/30">
                         <tr>
                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Equipamento</th>
+                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Fabricante</th>
                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Preço/Diária</th>
                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estoque</th>
                             <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
@@ -79,6 +82,10 @@ const Equipamentos: React.FC = () => {
                                 <td className="px-8 py-5">
                                     <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{e.nome}</p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs">{e.descricao}</p>
+                                    {e.numero_serie && <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest italic">S/N: {e.numero_serie}</p>}
+                                </td>
+                                <td className="px-8 py-5 text-center text-[10px] font-black text-slate-500 uppercase">
+                                    {e.fabricante || '---'}
                                 </td>
                                 <td className="px-8 py-5 text-center text-sm font-black text-primary italic">
                                     R$ {parseFloat(e.valor_diaria).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -88,7 +95,7 @@ const Equipamentos: React.FC = () => {
                                 </td>
                                 <td className="px-8 py-5 text-center">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${e.status === 'Disponível' ? 'bg-emerald-500/10 text-emerald-500' :
-                                            e.status === 'Defeito Técnico' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
+                                        e.status === 'Defeito Técnico' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
                                         }`}>
                                         {e.status}
                                     </span>
@@ -115,6 +122,16 @@ const Equipamentos: React.FC = () => {
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black uppercase text-slate-400">Nome</label>
                                 <input name="nome" defaultValue={editingItem?.nome} required className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Fabricante</label>
+                                    <input name="fabricante" defaultValue={editingItem?.fabricante} className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Nº de Série</label>
+                                    <input name="numero_serie" defaultValue={editingItem?.numero_serie} className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary" />
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">

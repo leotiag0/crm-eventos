@@ -1,0 +1,24 @@
+USE crm_eventos;
+
+-- Updates for clientes
+ALTER TABLE clientes
+ADD COLUMN IF NOT EXISTS cep VARCHAR(10),
+ADD COLUMN IF NOT EXISTS logradouro VARCHAR(255),
+ADD COLUMN IF NOT EXISTS numero VARCHAR(20),
+ADD COLUMN IF NOT EXISTS complemento VARCHAR(100),
+ADD COLUMN IF NOT EXISTS bairro VARCHAR(100),
+ADD COLUMN IF NOT EXISTS cidade VARCHAR(100),
+ADD COLUMN IF NOT EXISTS uf CHAR(2);
+
+-- Updates for equipamentos
+ALTER TABLE equipamentos
+ADD COLUMN IF NOT EXISTS fabricante VARCHAR(255),
+ADD COLUMN IF NOT EXISTS numero_serie VARCHAR(100);
+
+-- Updates for orcamentos
+ALTER TABLE orcamentos
+ADD COLUMN IF NOT EXISTS nome_evento VARCHAR(255),
+ADD COLUMN IF NOT EXISTS endereco_evento TEXT,
+ADD COLUMN IF NOT EXISTS numero_sequencial INT,
+ADD COLUMN IF NOT EXISTS condicoes_pagamento TEXT,
+ADD COLUMN IF NOT EXISTS condicoes_fornecimento TEXT;
