@@ -24,12 +24,12 @@ app.use('/api', createProxyMiddleware({
     }
 }));
 
-// Serve os arquivos estáticos do frontend (pasta dist após build)
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
+// Serve os arquivos estáticos do frontend (pasta dist na raiz após build)
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Fallback para SPA (Single Page Application)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
+    res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
 app.listen(PORT, () => {
