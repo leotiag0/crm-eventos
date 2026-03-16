@@ -1,0 +1,14 @@
+<?php
+/**
+ * EXEMPLO de configuração de conexão.
+ * COPIE ESTE ARQUIVO PARA 'config.php' E ALTERE SEUS DADOS.
+ * O ARQUIVO 'config.php' ESTÁ NO .gitignore E NÃO SERÁ ENVIADO AO GIT.
+ */
+
+return [
+    'host' => 'localhost',
+    'db'   => 'crm_eventos',
+    'user' => 'root',
+    'pass' => '',
+    'charset' => 'utf8mb4',
+];
