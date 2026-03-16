@@ -1,6 +1,9 @@
 <?php
-require_once 'env.php';
-Env::load(__DIR__ . '/../../.env');
+require_once __DIR__ . '/env.php';
+// Carrega .env se existir, mas não trava se não existir (variáveis podem vir do servidor)
+if (file_exists(__DIR__ . '/../../.env')) {
+    Env::load(__DIR__ . '/../../.env');
+}
 
 return [
     'host' => Env::get('DB_HOST', 'localhost'),
