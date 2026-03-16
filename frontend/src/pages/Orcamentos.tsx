@@ -48,6 +48,11 @@ const Orcamentos: React.FC = () => {
     const [quickClientForm, setQuickClientForm] = useState({ nome: '', cpf_cnpj: '', email: '', telefone: '' });
     const [condicoesPagamento, setCondicoesPagamento] = useState('À vista no fechamento ou 50% ato e 50% na montagem.');
     const [condicoesFornecimento, setCondicoesFornecimento] = useState('Incluso transporte e montagem padrão. Diária de 12 horas.');
+    const [validadeProposta, setValidadeProposta] = useState(format(addDays(new Date(), 7), 'yyyy-MM-dd'));
+    const [history, setHistory] = useState<any[]>([]);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [clientErrorMsg, setClientErrorMsg] = useState<string | null>(null);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [showResults, setShowResults] = useState(false);
@@ -100,6 +105,8 @@ const Orcamentos: React.FC = () => {
         setEnderecoEvento(fullOrc.endereco_evento || '');
         setCondicoesPagamento(fullOrc.condicoes_pagamento || '');
         setCondicoesFornecimento(fullOrc.condicoes_fornecimento || '');
+        setValidadeProposta(fullOrc.validade_proposta || format(addDays(new Date(), 7), 'yyyy-MM-dd'));
+        setHistory(fullOrc.historico || []);
 
         const loadedItems = fullOrc.itens.map((i: any) => ({
             equipamento_id: i.equipamento_id,
@@ -157,14 +164,21 @@ const Orcamentos: React.FC = () => {
     const submitMutation = useMutation({
         mutationFn: (payload: any) => api.post('/orcamentos.php', payload),
         onSuccess: (res) => {
-            alert(`Sucesso! Orçamento ${res.data.id} processado.`);
+            setSuccessMsg(`Sucesso! Orçamento ${res.data.id} processado.`);
+            setErrorMsg(null);
             if (res.data.id) window.open(`/proposta/${res.data.id}`, '_blank');
             queryClient.invalidateQueries({ queryKey: ['orcamentos-list'] });
-            setView('list');
-            resetForm();
+
+            setTimeout(() => {
+                setView('list');
+                resetForm();
+                setSuccessMsg(null);
+            }, 3000);
         },
         onError: (err: any) => {
-            alert(`Erro: ${err.response?.data?.error || 'Falha ao processar'}`);
+            console.error('Erro na mutation de orçamentos:', err);
+            setErrorMsg(err.response?.data?.error || 'Falha ao processar orçamento');
+            setSuccessMsg(null);
         }
     });
 
@@ -184,6 +198,7 @@ const Orcamentos: React.FC = () => {
             valor_total: calculateTotals(),
             condicoes_pagamento: condicoesPagamento,
             condicoes_fornecimento: condicoesFornecimento,
+            validade_proposta: validadeProposta,
             itens: items,
             status: action === 'approve' ? 'Aprovado' : 'Rascunho'
         };
@@ -194,6 +209,7 @@ const Orcamentos: React.FC = () => {
 
     const handleQuickClientSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setClientErrorMsg(null);
         try {
             const res = await api.post('/clientes.php', quickClientForm);
             if (res.data.status === 'success') {
@@ -201,9 +217,12 @@ const Orcamentos: React.FC = () => {
                 setClienteId(res.data.id);
                 setIsClientModalOpen(false);
                 setQuickClientForm({ nome: '', cpf_cnpj: '', email: '', telefone: '' });
+                setClientErrorMsg(null);
             }
-        } catch (error) {
-            alert('Erro ao cadastrar cliente');
+        } catch (error: any) {
+            console.error('Erro no cadastro rápido de cliente:', error);
+            const message = error.response?.data?.error || 'Erro ao cadastrar cliente';
+            setClientErrorMsg(message);
         }
     };
 
@@ -337,6 +356,24 @@ const Orcamentos: React.FC = () => {
                     </div>
                 </div>
 
+                {errorMsg && (
+                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                        <div className="size-8 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                            <Icons.Close size={16} />
+                        </div>
+                        <p className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-tight">{errorMsg}</p>
+                    </div>
+                )}
+
+                {successMsg && (
+                    <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                        <div className="size-8 rounded-xl bg-green-500 flex items-center justify-center text-white shrink-0">
+                            <Icons.Add size={16} />
+                        </div>
+                        <p className="text-xs font-black text-green-600 dark:text-green-400 uppercase tracking-tight">{successMsg}</p>
+                    </div>
+                )}
+
                 {/* Setup Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="space-y-1.5 lg:col-span-2">
@@ -378,8 +415,16 @@ const Orcamentos: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Event Data */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="space-y-1.5 md:col-span-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Validade da Proposta</label>
+                        <input
+                            type="date"
+                            value={validadeProposta}
+                            onChange={(e) => setValidadeProposta(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                        />
+                    </div>
                     <div className="space-y-1.5 md:col-span-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Nome do Evento</label>
                         <input
@@ -406,7 +451,7 @@ const Orcamentos: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                    <div className="space-y-1.5 md:col-span-3">
+                    <div className="space-y-1.5 md:col-span-4">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Local do Evento</label>
                         <input
                             placeholder="Endereço completo da montagem"
@@ -580,6 +625,22 @@ const Orcamentos: React.FC = () => {
                             </button>
                         </div>
                     </div>
+
+                    {/* Timeline de Status */}
+                    {selectedId && history.length > 0 && (
+                        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Histórico de Status</p>
+                            <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
+                                {history.map((h, idx) => (
+                                    <div key={h.id} className="relative pl-8">
+                                        <div className={`absolute left-0 top-1 size-6 rounded-full border-4 border-white dark:border-slate-900 z-10 ${idx === 0 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                                        <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase">{h.status_novo}</p>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase">{format(new Date(h.data_mudanca), 'dd/MM/yyyy HH:mm')}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             {/* Quick-Add Client Modal */}
@@ -590,6 +651,15 @@ const Orcamentos: React.FC = () => {
                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Cadastro Rápido</h3>
                             <p className="text-[10px] font-black text-primary uppercase tracking-widest">Adicione o cliente sem sair do orçamento</p>
                         </div>
+
+                        {clientErrorMsg && (
+                            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                                <div className="size-8 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                                    <Icons.Close size={16} />
+                                </div>
+                                <p className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-tight">{clientErrorMsg}</p>
+                            </div>
+                        )}
                         <form onSubmit={handleQuickClientSubmit} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase">Nome / Razão Social</label>

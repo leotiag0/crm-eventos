@@ -5,6 +5,7 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 require_once '../config/database.php';
+require_once '../config/middleware.php';
 
 session_start();
 
@@ -44,6 +45,7 @@ if ($method === 'POST') {
             $permissions = $stmtPerms->fetchAll(PDO::FETCH_COLUMN);
 
             $user['permissoes'] = $permissions;
+            session_regenerate_id(true); // Prevenção contra fixação de sessão
             $_SESSION['user'] = $user;
 
             echo json_encode([

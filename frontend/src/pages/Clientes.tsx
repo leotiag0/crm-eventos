@@ -23,6 +23,7 @@ const Clientes: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [isSearchingCnpj, setIsSearchingCnpj] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [form, setForm] = useState<ClientFormData>({
         nome: '', email: '', telefone: '', cpf_cnpj: '',
@@ -61,12 +62,35 @@ const Clientes: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['clientes-list-full'] });
             setIsModalOpen(false);
             setEditingItem(null);
+            setErrorMsg(null);
+        },
+        onError: (error: any) => {
+            console.error('Erro na mutation de clientes:', error);
+            const serverError = error.response?.data?.error;
+            setErrorMsg(serverError || 'Erro ao salvar cliente');
         }
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setErrorMsg(null);
         mutation.mutate({ ...form, id: editingItem?.id });
+    };
+
+    const formatDocument = (value: string) => {
+        const numbers = value.replace(/\D/g, '');
+        if (numbers.length <= 11) {
+            return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4").substring(0, 14);
+        }
+        return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5").substring(0, 18);
+    };
+
+    const formatPhone = (value: string) => {
+        const numbers = value.replace(/\D/g, '');
+        if (numbers.length <= 10) {
+            return numbers.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3").substring(0, 14);
+        }
+        return numbers.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3").substring(0, 15);
     };
 
     const handleCnpjLookup = async () => {
@@ -92,8 +116,9 @@ const Clientes: React.FC = () => {
                     bairro: data.bairro || prev.bairro,
                     cidade: data.municipio || prev.cidade,
                     uf: data.uf || prev.uf,
-                    telefone: data.ddd_telefone_1 ? `(${data.ddd_telefone_1.substring(0, 2)}) ${data.ddd_telefone_1.substring(2)}` : prev.telefone,
-                    email: data.email || prev.email
+                    telefone: data.ddd_telefone_1 ? formatPhone(data.ddd_telefone_1) : prev.telefone,
+                    email: data.email || prev.email,
+                    cpf_cnpj: formatDocument(cnpj)
                 }));
             }
         } catch (error) {
@@ -190,15 +215,23 @@ const Clientes: React.FC = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6 overflow-y-auto">
+                                {errorMsg && (
+                                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="size-8 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                                            <Icons.Close size={16} />
+                                        </div>
+                                        <p className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-tight">{errorMsg}</p>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5 md:col-span-2">
                                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">CPF / CNPJ</label>
                                         <div className="flex gap-2">
                                             <input
                                                 value={form.cpf_cnpj}
-                                                onChange={(e) => setForm({ ...form, cpf_cnpj: e.target.value })}
+                                                onChange={(e) => setForm({ ...form, cpf_cnpj: formatDocument(e.target.value) })}
                                                 className="flex-1 bg-slate-50 dark:bg-slate-800 border-transparent rounded-2xl text-sm font-bold focus:ring-primary dark:text-white h-12"
-                                                placeholder="Apenas números"
+                                                placeholder="000.000.000-00 ou 00.000.000/0000-00"
                                             />
                                             <button
                                                 type="button"
@@ -225,8 +258,9 @@ const Clientes: React.FC = () => {
                                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">WhatsApp / Tel</label>
                                         <input
                                             value={form.telefone}
-                                            onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                                            onChange={(e) => setForm({ ...form, telefone: formatPhone(e.target.value) })}
                                             className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-2xl text-sm font-bold focus:ring-primary dark:text-white h-12"
+                                            placeholder="(00) 00000-0000"
                                         />
                                     </div>
 

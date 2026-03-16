@@ -12,6 +12,7 @@ import PropostaCliente from './pages/PropostaCliente';
 import Login from './pages/Login';
 import Usuarios from './pages/Usuarios';
 import Configuracoes from './pages/Configuracoes';
+import Romaneio from './pages/Romaneio';
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ function App() {
           </Route>
 
           <Route path="/proposta/:id" element={<PropostaCliente />} />
+          <Route path="/romaneio/:id" element={<Romaneio />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

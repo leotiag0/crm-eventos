@@ -5,15 +5,10 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 require_once '../config/database.php';
+require_once '../config/middleware.php';
 
-session_start();
-
-// Proteção básica: admin
-if (!isset($_SESSION['user']) || $_SESSION['user']['papel_slug'] !== 'admin') {
-    http_response_code(403);
-    echo json_encode(["error" => "Acesso negado"]);
-    exit;
-}
+// Proteção centralizada via middleware
+checkRole('admin');
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -26,20 +21,18 @@ if ($method === 'GET') {
             FROM usuarios u
             LEFT JOIN papeis p ON u.papel_id = p.id
         ");
-        echo json_encode($stmt->fetchAll());
+        sendJson($stmt->fetchAll());
     } elseif ($action === 'papeis') {
         $stmt = $pdo->query("SELECT * FROM papeis");
-        echo json_encode($stmt->fetchAll());
+        sendJson($stmt->fetchAll());
     } elseif ($action === 'permissoes') {
         $papel_id = $_GET['papel_id'] ?? null;
         if (!$papel_id) {
-            http_response_code(400);
-            echo json_encode(["error" => "ID do papel é obrigatório"]);
-            exit;
+            sendError("ID do papel é obrigatório");
         }
         $stmt = $pdo->prepare("SELECT modulo, pode_acessar FROM permissoes WHERE papel_id = ?");
         $stmt->execute([$papel_id]);
-        echo json_encode($stmt->fetchAll());
+        sendJson($stmt->fetchAll());
     }
 } elseif ($method === 'POST') {
     $data = json_decode(file_get_contents("php://input"), true);
@@ -64,26 +57,22 @@ if ($method === 'GET') {
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
-            echo json_encode(["message" => "Usuário atualizado com sucesso"]);
+            sendSuccess("Usuário atualizado com sucesso");
         } else {
             // Create
             if (!$senha) {
-                http_response_code(400);
-                echo json_encode(["error" => "Senha é obrigatória para novos usuários"]);
-                exit;
+                sendError("Senha é obrigatória para novos usuários");
             }
             $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, papel_id) VALUES (?, ?, ?, ?)");
             $stmt->execute([$nome, $email, password_hash($senha, PASSWORD_DEFAULT), $papel_id]);
-            echo json_encode(["message" => "Usuário criado com sucesso", "id" => $pdo->lastInsertId()]);
+            sendSuccess("Usuário criado com sucesso", ["id" => $pdo->lastInsertId()]);
         }
     } elseif ($action === 'update_permissoes') {
         $papel_id = $data['papel_id'] ?? null;
-        $permissoes = $data['permissoes'] ?? []; // Array de ['modulo' => '...', 'pode_acessar' => 1/0]
+        $permissoes = $data['permissoes'] ?? [];
 
         if (!$papel_id) {
-            http_response_code(400);
-            echo json_encode(["error" => "Papel ID é obrigatório"]);
-            exit;
+            sendError("Papel ID é obrigatório");
         }
 
         $pdo->beginTransaction();
@@ -96,11 +85,10 @@ if ($method === 'GET') {
                 $stmt->execute([$perm['pode_acessar'], $papel_id, $perm['modulo']]);
             }
             $pdo->commit();
-            echo json_encode(["message" => "Permissões atualizadas com sucesso"]);
+            sendSuccess("Permissões atualizadas com sucesso");
         } catch (Exception $e) {
             $pdo->rollBack();
-            http_response_code(500);
-            echo json_encode(["error" => $e->getMessage()]);
+            sendError($e->getMessage(), 500);
         }
     }
 } elseif ($method === 'DELETE') {
@@ -108,6 +96,8 @@ if ($method === 'GET') {
     if ($id) {
         $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
         $stmt->execute([$id]);
-        echo json_encode(["message" => "Usuário excluído com sucesso"]);
+        sendSuccess("Usuário excluído com sucesso");
+    } else {
+        sendError("ID é obrigatório");
     }
 }

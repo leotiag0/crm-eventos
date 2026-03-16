@@ -22,5 +22,6 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
     // Em produção, não exibir detalhes do erro
-    die("Erro na conexão com o banco de dados: " . $e->getMessage());
+    error_log("Erro na conexão DB: " . $e->getMessage());
+    die("Erro na conexão com o banco de dados. Por favor, tente novamente mais tarde.");
 }
