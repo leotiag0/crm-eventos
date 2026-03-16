@@ -12,6 +12,12 @@ frontend/dist/
 frontend/.env
 frontend/.env.*
 
+# Produção Hostinger
+node_modules/
+!server.js
+!package.json
+!package-lock.json
+!frontend/dist/
 # OS/IDE
 .DS_Store
 Thumbs.db
