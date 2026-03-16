@@ -35,10 +35,29 @@ class Env
 
     public static function get($key, $default = null)
     {
+        // Tenta buscar em $_SERVER (útil para SetEnv do .htaccess)
+        if (isset($_SERVER[$key])) {
+            return self::castValue($_SERVER[$key]);
+        }
+
+        // Tenta buscar em $_ENV
+        if (isset($_ENV[$key])) {
+            return self::castValue($_ENV[$key]);
+        }
+
+        // Tenta buscar no ambiente do sistema
         $value = getenv($key);
         if ($value === false) {
             return $default;
         }
+
+        return self::castValue($value);
+    }
+
+    private static function castValue($value)
+    {
+        // Remover aspas se existirem
+        $value = trim($value, '"\'');
 
         // Converter valores booleanos e nulos
         switch (strtolower($value)) {
