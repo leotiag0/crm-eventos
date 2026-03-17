@@ -10,11 +10,10 @@ if (file_exists(__DIR__ . '/config.php')) {
     require_once __DIR__ . '/env.php';
 
     // Tenta carregar o .env se estiver na raiz do public_html OU UM NÍVEL ACIMA
-    // Estrutura: /home/u.../domains/dominio/.env <- (3 níveis) <- api/config/database.php
-    Env::load(__DIR__ . '/../../.env'); // public_html/.env
-    Env::load(__DIR__ . '/../../../.env'); // dominio/.env
-    Env::load(dirname(dirname(dirname(__DIR__))) . '/.env'); // Caso o doc_root seja diferente
-    Env::load(dirname(dirname(__DIR__)) . '/.env'); // Este é o caminho exato que funcionou no test_db.php
+    // Estrutura física na Hostinger: /home/u.../domains/dominio/public_html/api/config/database.php
+    $publicHtml = dirname(dirname(__DIR__));
+    Env::load($publicHtml . '/.env');      // public_html/.env
+    Env::load($publicHtml . '/../.env');   // dominio/.env (PERSISTENTE/SEGURO)
 
     $config = [
         'host' => Env::get('DB_HOST', 'localhost'),
