@@ -30,7 +30,7 @@ if (file_exists($envPath)) {
 }
 
 echo "\n--- Variáveis de Ambiente (após carregar) ---\n";
-$envVars = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_CHARSET', 'API_URL', 'APP_ENV'];
+$envVars = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_PASSWORD', 'DB_CHARSET', 'API_URL', 'APP_ENV'];
 foreach ($envVars as $v) {
     $val = Env::get($v);
     echo "Env::get('$v'): " . ($val !== null ? "DEFINIDO" : "NULL") . "\n";
@@ -41,7 +41,7 @@ try {
     $host = Env::get('DB_HOST', 'localhost');
     $db = Env::get('DB_NAME');
     $user = Env::get('DB_USER');
-    $pass = Env::get('DB_PASS');
+    $pass = Env::get('DB_PASS') ?? Env::get('DB_PASSWORD');
     $charset = Env::get('DB_CHARSET', 'utf8mb4');
 
     if (!$db || !$user) {

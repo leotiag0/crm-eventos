@@ -16,7 +16,7 @@ if (file_exists(__DIR__ . '/config.php')) {
         'host' => Env::get('DB_HOST', 'localhost'),
         'db' => Env::get('DB_NAME'),
         'user' => Env::get('DB_USER'),
-        'pass' => Env::get('DB_PASS'),
+        'pass' => Env::get('DB_PASS') ?? Env::get('DB_PASSWORD'),
         'charset' => Env::get('DB_CHARSET', 'utf8mb4'),
     ];
 }
