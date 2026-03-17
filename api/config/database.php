@@ -8,6 +8,10 @@ if (file_exists(__DIR__ . '/config.php')) {
 } else {
     // Fallback para variáveis de ambiente diretamente se o config.php estiver no .gitignore
     require_once __DIR__ . '/env.php';
+
+    // Tenta carregar o .env se estiver na raiz do public_html
+    Env::load(__DIR__ . '/../../.env');
+
     $config = [
         'host' => Env::get('DB_HOST', 'localhost'),
         'db' => Env::get('DB_NAME'),
