@@ -35,6 +35,12 @@ class Env
 
     public static function get($key, $default = null)
     {
+        // Tenta buscar nos headers (passados pelo nosso proxy no server.js)
+        $headerKey = 'HTTP_X_APP_' . str_replace('-', '_', strtoupper($key));
+        if (isset($_SERVER[$headerKey])) {
+            return self::castValue($_SERVER[$headerKey]);
+        }
+
         // Tenta buscar em $_SERVER (útil para SetEnv do .htaccess)
         if (isset($_SERVER[$key])) {
             return self::castValue($_SERVER[$key]);

@@ -3,7 +3,19 @@
  * Configuração de conexão com o banco de dados
  */
 
-$config = require __DIR__ . '/config.php';
+if (file_exists(__DIR__ . '/config.php')) {
+    $config = require __DIR__ . '/config.php';
+} else {
+    // Fallback para variáveis de ambiente diretamente se o config.php estiver no .gitignore
+    require_once __DIR__ . '/env.php';
+    $config = [
+        'host' => Env::get('DB_HOST', 'localhost'),
+        'db' => Env::get('DB_NAME'),
+        'user' => Env::get('DB_USER'),
+        'pass' => Env::get('DB_PASS'),
+        'charset' => Env::get('DB_CHARSET', 'utf8mb4'),
+    ];
+}
 
 $host = $config['host'];
 $db = $config['db'];

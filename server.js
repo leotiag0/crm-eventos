@@ -16,6 +16,14 @@ app.use('/api', createProxyMiddleware({
         '^/api': '/api', // mantém o prefixo /api para o backend PHP
     },
     onProxyReq: (proxyReq, req, res) => {
+        // Passa variáveis de ambiente para o PHP via headers (sync entre Node e PHP na Hostinger)
+        const envVars = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_CHARSET', 'API_URL', 'APP_ENV'];
+        envVars.forEach(v => {
+            if (process.env[v]) {
+                proxyReq.setHeader(`X-App-${v}`, process.env[v]);
+            }
+        });
+
         // Log para debug em produção se necessário
         console.log(`[Proxy] ${req.method} ${req.url} -> ${API_URL}${req.url}`);
     },
