@@ -40,7 +40,13 @@ echo "\n--- Variáveis de Ambiente (após carregar) ---\n";
 $envVars = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS', 'DB_PASSWORD', 'DB_CHARSET', 'API_URL', 'APP_ENV'];
 foreach ($envVars as $v) {
     $val = Env::get($v);
-    echo "Env::get('$v'): " . ($val !== null ? "DEFINIDO" : "NULL") . "\n";
+    if ($val === null) {
+        echo "Env::get('$v'): NULL\n";
+    } else {
+        // Mostrar primeiros 3 caracteres para confirmar que mudou, mas manter o resto em asteriscos
+        $display = substr((string) $val, 0, 3) . str_repeat('*', max(0, strlen((string) $val) - 3));
+        echo "Env::get('$v'): $display\n";
+    }
 }
 
 echo "\n--- Testando Conexão Manual (sem usar database.php para não dar die) ---\n";
