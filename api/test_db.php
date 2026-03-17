@@ -16,9 +16,16 @@ echo "Current Directory: " . __DIR__ . "\n";
 require_once __DIR__ . '/config/env.php';
 
 echo "\n--- Verificação de Arquivos ---\n";
-$envPath = __DIR__ . '/../.env';
-echo "Tentando .env em: $envPath\n";
-echo ".env existe? " . (file_exists($envPath) ? "SIM" : "NÃO") . "\n";
+$envPathRoot = dirname(__DIR__) . '/.env'; // public_html/.env
+$envPathSafe = dirname(dirname(__DIR__)) . '/.env'; // dominio/.env (Fora do deploy)
+
+echo "Tentando .env em (Raiz): $envPathRoot\n";
+echo ".env existe? " . (file_exists($envPathRoot) ? "SIM" : "NÃO") . "\n";
+
+echo "Tentando .env em (Seguro/Pai): $envPathSafe\n";
+echo ".env existe? " . (file_exists($envPathSafe) ? "SIM" : "NÃO") . "\n";
+
+$envPath = file_exists($envPathSafe) ? $envPathSafe : $envPathRoot;
 
 if (file_exists($envPath)) {
     echo "Lendo .env sem carregar (primeiras 2 linhas para teste de leitura):\n";

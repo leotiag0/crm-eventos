@@ -9,8 +9,11 @@ if (file_exists(__DIR__ . '/config.php')) {
     // Fallback para variáveis de ambiente diretamente se o config.php estiver no .gitignore
     require_once __DIR__ . '/env.php';
 
-    // Tenta carregar o .env se estiver na raiz do public_html
-    Env::load(__DIR__ . '/../../.env');
+    // Tenta carregar o .env se estiver na raiz do public_html OU UM NÍVEL ACIMA (para persistência na Hostinger)
+    // Estrutura: /home/u.../domains/dominio/.env <- (4 níveis) <- api/config/database.php
+    Env::load(__DIR__ . '/../../.env'); // Raiz (public_html)
+    Env::load(__DIR__ . '/../../../.env'); // Um nível acima da raiz (Fora da pasta de deploy do Git)
+    Env::load(dirname(dirname(__DIR__)) . '/.env'); // Outra tentativa na raiz
 
     $config = [
         'host' => Env::get('DB_HOST', 'localhost'),
