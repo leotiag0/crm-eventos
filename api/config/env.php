@@ -33,29 +33,25 @@ class Env
 
     public static function get($key, $default = null)
     {
-        // Tenta buscar nos headers (passados pelo nosso proxy no server.js)
+        // 1. Tenta buscar em $_ENV (onde carregamos o nosso .env via Env::load)
+        if (isset($_ENV[$key])) {
+            return self::castValue($_ENV[$key]);
+        }
+
+        // 2. Tenta buscar em $_SERVER (útil para variáveis do Apache ou SetEnv)
+        if (isset($_SERVER[$key])) {
+            return self::castValue($_SERVER[$key]);
+        }
+
+        // 3. Tenta buscar nos headers (fallback para o proxy se nada mais existir)
         $headerKey = 'HTTP_X_APP_' . str_replace('-', '_', strtoupper($key));
         if (isset($_SERVER[$headerKey])) {
             return self::castValue($_SERVER[$headerKey]);
         }
 
-        // Tenta buscar em $_SERVER (útil para SetEnv do .htaccess)
-        if (isset($_SERVER[$key])) {
-            return self::castValue($_SERVER[$key]);
-        }
-
-        // Tenta buscar em $_ENV
-        if (isset($_ENV[$key])) {
-            return self::castValue($_ENV[$key]);
-        }
-
-        // Tenta buscar no ambiente do sistema
-        $value = getenv($key);
-        if ($value === false) {
-            return $default;
-        }
-
-        return self::castValue($value);
+        // 4. Fallback final para getenv() ou o default
+        $val = getenv($key);
+        return $val !== false ? self::castValue($val) : $default;
     }
 
     private static function castValue($value)
