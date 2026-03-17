@@ -9,11 +9,11 @@ if (file_exists(__DIR__ . '/config.php')) {
     // Fallback para variáveis de ambiente diretamente se o config.php estiver no .gitignore
     require_once __DIR__ . '/env.php';
 
-    // Tenta carregar o .env se estiver na raiz do public_html OU UM NÍVEL ACIMA
-    // Estrutura física na Hostinger: /home/u.../domains/dominio/public_html/api/config/database.php
-    $publicHtml = dirname(dirname(__DIR__));
-    Env::load($publicHtml . '/.env');      // public_html/.env
-    Env::load($publicHtml . '/../.env');   // dominio/.env (PERSISTENTE/SEGURO)
+    // Tenta carregar o .env de forma robusta
+    $root = $_SERVER['DOCUMENT_ROOT']; // Geralmente /.../public_html
+    Env::load($root . '/.env');        // Root (public_html)
+    Env::load(dirname($root) . '/.env'); // Um nível acima (Onde está o nosso arquivo seguro)
+    Env::load(dirname(__DIR__, 2) . '/.env'); // Fallback manual
 
     $config = [
         'host' => Env::get('DB_HOST', 'localhost'),
