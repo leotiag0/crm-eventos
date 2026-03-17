@@ -3,7 +3,7 @@
  * Configuração de conexão com o banco de dados
  */
 
-$config = require_once __DIR__ . '/config.php';
+$config = require __DIR__ . '/config.php';
 
 $host = $config['host'];
 $db = $config['db'];

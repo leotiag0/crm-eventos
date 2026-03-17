@@ -1,5 +1,5 @@
 # Backend sensitive data
-api/config/config.php
+# (O config.php agora é seguro para o git pois usa Env::get)
 
 # PHP related
 composer.lock
