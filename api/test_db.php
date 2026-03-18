@@ -33,16 +33,30 @@ echo "DB_USER: " . Env::get('DB_USER') . "\n";
 echo "DB_NAME: " . Env::get('DB_NAME') . "\n";
 echo "DB_HOST: " . Env::get('DB_HOST') . "\n";
 
+echo "\n--- Ambiente PHP ---\n";
+echo "PHP Version: " . phpversion() . "\n";
+echo "PDO MySQL: " . (extension_loaded('pdo_mysql') ? "OK" : "FALHA") . "\n";
+echo "Session Status: " . (session_status() == PHP_SESSION_ACTIVE ? "Ativa" : "Inativa") . "\n";
+
 echo "\n--- Testando database.php (Integração Real) ---\n";
 try {
+    // Capturar output do database.php se ele der die ou echo
+    ob_start();
     require __DIR__ . '/config/database.php';
+    $output = ob_get_clean();
+
     if (isset($pdo)) {
-        echo "PDO: SUCESSO!\n";
-        $pdo->query("SELECT 1");
-        echo "QUERY: SUCESSO!\n";
+        echo "PDO: CONECTADO COM SUCESSO!\n";
+        $stmt = $pdo->query("SELECT 1");
+        if ($stmt) {
+            echo "QUERY TESTE: SUCESSO!\n";
+        }
+    } else {
+        echo "PDO: NÃO DEFINIDO (Verifique o arquivo database.php)\n";
+        echo "Output capturado: " . $output . "\n";
     }
 } catch (Exception $e) {
-    echo "ERRO: " . $e->getMessage() . "\n";
+    echo "ERRO CAPTURADO: " . $e->getMessage() . "\n";
 }
 
 echo "\n--- Fim ---\n";

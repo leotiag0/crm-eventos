@@ -40,7 +40,26 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    // Em produção, não exibir detalhes do erro
+    // Em produção, não exibir detalhes sensíveis, mas retornar JSON para o frontend
     error_log("Erro na conexão DB: " . $e->getMessage());
-    die("Erro na conexão com o banco de dados. Por favor, tente novamente mais tarde.");
+
+    header("Content-Type: application/json; charset=UTF-8");
+    http_response_code(500);
+
+    $errorMsg = "Erro na conexão com o banco de dados. Por favor, tente novamente mais tarde.";
+
+    // Se estiver em ambiente de desenvolvimento ou se for um erro específico que ajuda o usuário sem expor senhas
+    if (Env::get('APP_DEBUG') || strpos($e->getMessage(), 'Access denied') !== false) {
+        $errorMsg .= " Detalhes: " . $e->getMessage();
+    }
+
+    echo json_encode([
+        "error" => $errorMsg,
+        "debug_info" => [
+            "host" => $host,
+            "db" => $db,
+            "user" => $user
+        ]
+    ]);
+    exit;
 }
