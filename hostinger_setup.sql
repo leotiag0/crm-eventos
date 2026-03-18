@@ -64,6 +64,18 @@ CREATE TABLE IF NOT EXISTS orcamentos (
     FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
+-- Tabela de Histórico de Orçamentos
+CREATE TABLE IF NOT EXISTS orcamento_historico (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    orcamento_id INT NOT NULL,
+    status_anterior VARCHAR(50),
+    status_novo VARCHAR(50) NOT NULL,
+    usuario_id INT,
+    data_mudanca TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (orcamento_id) REFERENCES orcamentos (id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE SET NULL
+) ENGINE = InnoDB;
+
 -- Tabela de Itens do Orçamento
 CREATE TABLE IF NOT EXISTS itens_orcamento (
     id INT AUTO_INCREMENT PRIMARY KEY,

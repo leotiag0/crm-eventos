@@ -1,24 +1,33 @@
 const fs = require('fs');
 const path = require('path');
 
-function copyFolderSync(from, to) {
+function copyFolderSync(from, to, skipFolders = []) {
     if (!fs.existsSync(from)) return;
+    if (!fs.parse) { /* Polyfill or check if skipFolders is used */ }
     if (!fs.existsSync(to)) fs.mkdirSync(to, { recursive: true });
 
     fs.readdirSync(from).forEach(element => {
-        if (fs.lstatSync(path.join(from, element)).isDirectory()) {
-            copyFolderSync(path.join(from, element), path.join(to, element));
+        const fromPath = path.join(from, element);
+        const toPath = path.join(to, element);
+
+        if (skipFolders.includes(element)) {
+            console.log(`Pulando pasta ignorada: ${fromPath}`);
+            return;
+        }
+
+        if (fs.lstatSync(fromPath).isDirectory()) {
+            copyFolderSync(fromPath, toPath, skipFolders);
         } else {
-            fs.copyFileSync(path.join(from, element), path.join(to, element));
+            fs.copyFileSync(fromPath, toPath);
         }
     });
 }
 
 console.log('--- Iniciando consolidação de arquivos para produção ---');
 
-// 1. Copia a pasta API
+// 1. Copia a pasta API (pulando pastas de dados persistentes e dependências)
 console.log('Copiando pasta /api...');
-copyFolderSync('api', 'dist/api');
+copyFolderSync('api', 'dist/api', ['uploads', 'logs', 'vendor']);
 
 // 2. Copia o server.js
 console.log('Copiando server.js...');

@@ -24,3 +24,6 @@ Thumbs.db
 .vscode/
 .idea/
 .gemini/
+api/uploads/
+api/logs/
+api/vendor/
