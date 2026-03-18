@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS orcamentos (
     data_inicio DATETIME NOT NULL,
     data_fim DATETIME NOT NULL,
     valor_total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    validade_proposta INT DEFAULT 0,
     tipo_cobranca ENUM('DIARIA', 'EVENTO') DEFAULT 'DIARIA',
     status ENUM(
         'Rascunho',
