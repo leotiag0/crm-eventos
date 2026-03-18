@@ -48,7 +48,11 @@ class LogisticaService
     public function listReservasByOrcamento($orcamentoId)
     {
         $stmt = $this->pdo->prepare("
-            SELECT r.*, e.nome as equipamento_nome 
+            SELECT 
+                r.*, 
+                e.nome as equipamento_nome,
+                (SELECT COALESCE(SUM(m.quantidade), 0) FROM movimentacoes_logistica m WHERE m.orcamento_id = r.orcamento_id AND m.equipamento_id = r.equipamento_id AND m.tipo = 'SAIDA') as qtd_saida,
+                (SELECT COALESCE(SUM(m.quantidade), 0) FROM movimentacoes_logistica m WHERE m.orcamento_id = r.orcamento_id AND m.equipamento_id = r.equipamento_id AND m.tipo = 'ENTRADA') as qtd_entrada
             FROM reservas r 
             JOIN equipamentos e ON r.equipamento_id = e.id 
             WHERE r.orcamento_id = ? AND r.status = 'ATIVA'

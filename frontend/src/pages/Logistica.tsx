@@ -28,6 +28,7 @@ const Logistica: React.FC = () => {
         onSuccess: (res: any) => {
             setSuccessMsg(res.data.message || 'Operação realizada com sucesso!');
             setErrorMsg(null);
+            setMovingQuantities({}); // Limpar todas as quantidades após sucesso
             refetchReservas();
             queryClient.invalidateQueries({ queryKey: ['logistica-pendentes'] });
             // Limpar mensagem após 5 segundos
@@ -208,10 +209,23 @@ const Logistica: React.FC = () => {
                                 >
                                     <div className="flex-1 w-full">
                                         <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{r.equipamento_nome}</p>
-                                        <div className="flex items-center gap-4 mt-1">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reserva total: {r.qtd}</p>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reserva: {r.qtd}</p>
                                             <div className="h-1 w-1 rounded-full bg-slate-300"></div>
-                                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest italic">Status: Ativa</p>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest ${r.qtd_saida >= r.qtd ? 'text-blue-600' : 'text-slate-400'}`}>
+                                                Saíram: {r.qtd_saida}
+                                            </p>
+                                            <div className="h-1 w-1 rounded-full bg-slate-300"></div>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest ${r.qtd_entrada >= r.qtd ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                Voltaram: {r.qtd_entrada}
+                                            </p>
+                                            <div className="h-1 w-1 rounded-full bg-slate-300"></div>
+                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${r.qtd_entrada >= r.qtd ? 'bg-emerald-100 text-emerald-700' :
+                                                r.qtd_saida >= r.qtd ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                {r.qtd_entrada >= r.qtd ? 'Concluído' : r.qtd_saida >= r.qtd ? 'Em Trânsito' : 'Pendente'}
+                                            </span>
                                         </div>
                                     </div>
 
