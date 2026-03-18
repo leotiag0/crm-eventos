@@ -79,8 +79,10 @@ class OrcamentoService
         $this->pdo->beginTransaction();
         try {
             $oldStatus = $id ? $this->getCurrentStatus($id) : null;
+            $orcamentoIdForValidation = $id ? intval($id) : null;
 
-            // 1. Validar disponibilidade e validade se for Aprovação
+            // 1. Validar disponibilidade (sempre) e validade (se for Aprovação)
+            $this->validateAvailability($data, $orcamentoIdForValidation);
             if ($action === 'approve') {
                 $this->validateApproval($data);
             }
@@ -137,30 +139,43 @@ class OrcamentoService
                 throw new Exception("A proposta expirou em " . date('d/m/Y', strtotime($validade)) . ". Não é possível aprovar.");
             }
         }
-
-        $this->validateAvailability($data);
     }
 
-    private function validateAvailability($data)
+    private function validateAvailability($data, $excludeOrcamentoId = null)
     {
         foreach ($data['itens'] as $item) {
-            $stmtDisp = $this->pdo->prepare("
+            $sql = "
                 SELECT 
                     e.estoque_total - COALESCE(SUM(r.qtd), 0) AS disponivel 
                 FROM equipamentos e 
                 LEFT JOIN reservas r ON r.equipamento_id = e.id 
                     AND r.status = 'ATIVA' 
-                    AND r.inicio < ? 
-                    AND r.fim > ? 
-                WHERE e.id = ? 
-                GROUP BY e.estoque_total
-                FOR UPDATE
-            ");
-            $stmtDisp->execute([$data['data_fim'], $data['data_inicio'], $item['equipamento_id']]);
+                    AND r.inicio < :fim 
+                    AND r.fim > :inicio
+            ";
+
+            if ($excludeOrcamentoId) {
+                $sql .= " AND r.orcamento_id != :exclude_id ";
+            }
+
+            $sql .= " WHERE e.id = :equip_id GROUP BY e.estoque_total FOR UPDATE";
+
+            $stmtDisp = $this->pdo->prepare($sql);
+            $params = [
+                'fim' => $data['data_fim'],
+                'inicio' => $data['data_inicio'],
+                'equip_id' => $item['equipamento_id']
+            ];
+            if ($excludeOrcamentoId) {
+                $params['exclude_id'] = $excludeOrcamentoId;
+            }
+
+            $stmtDisp->execute($params);
             $res = $stmtDisp->fetch();
 
             if (!$res || $res['disponivel'] < $item['quantidade']) {
-                throw new Exception("Estoque insuficiente para o item ID: " . $item['equipamento_id']);
+                $nome = $item['nome'] ?? ("ID: " . $item['equipamento_id']);
+                throw new Exception("Estoque insuficiente para o item: " . $nome);
             }
         }
     }
@@ -269,6 +284,9 @@ class OrcamentoService
 
     private function createReservas($orcamentoId, $data)
     {
+        // Limpar reservas antigas antes de recriar
+        $this->pdo->prepare("DELETE FROM reservas WHERE orcamento_id = ?")->execute([$orcamentoId]);
+
         $stmtReserva = $this->pdo->prepare("
             INSERT INTO reservas (orcamento_id, equipamento_id, qtd, inicio, fim, status) 
             VALUES (?, ?, ?, ?, ?, 'ATIVA')

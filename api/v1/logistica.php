@@ -18,10 +18,10 @@ switch ($method) {
 
         try {
             if ($type === 'checkout') {
-                $message = $service->checkout($data['orcamento_id'] ?? null);
+                $message = $service->checkout($data);
                 sendSuccess($message);
             } else if ($type === 'checkin') {
-                $message = $service->checkin($data['itens'] ?? []);
+                $message = $service->checkin($data);
                 sendSuccess($message);
             } else {
                 sendError("Tipo de operação inválida", 400);

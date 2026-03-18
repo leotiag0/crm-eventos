@@ -231,31 +231,37 @@ const Logistica: React.FC = () => {
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex gap-2 w-full md:w-auto">
-                                        <button
-                                            onClick={() => handleSingleAction(r, 'SAIDA')}
-                                            disabled={(movingQuantities[r.id] || 0) <= 0}
-                                            className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-black/10"
-                                        >
-                                            <Icons.Logistica size={14} /> Saída
-                                        </button>
-                                        <div className="flex gap-1 h-full">
+                                    <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">Saída</span>
                                             <button
-                                                onClick={() => handleSingleAction(r, 'ENTRADA', 'Disponível')}
+                                                onClick={() => handleSingleAction(r, 'SAIDA')}
                                                 disabled={(movingQuantities[r.id] || 0) <= 0}
-                                                className="size-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 disabled:opacity-30 transition-all"
-                                                title="Entrada OK"
+                                                className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-black/10"
                                             >
-                                                <Icons.Success size={18} />
+                                                <Icons.Logistica size={14} /> Registrar
                                             </button>
-                                            <button
-                                                onClick={() => handleSingleAction(r, 'ENTRADA', 'Defeito Técnico')}
-                                                disabled={(movingQuantities[r.id] || 0) <= 0}
-                                                className="size-11 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-500/20 hover:scale-105 disabled:opacity-30 transition-all"
-                                                title="Entrada com Defeito"
-                                            >
-                                                <Icons.Error size={18} />
-                                            </button>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">Retorno (Devolução)</span>
+                                            <div className="flex gap-1 h-full">
+                                                <button
+                                                    onClick={() => handleSingleAction(r, 'ENTRADA', 'Disponível')}
+                                                    disabled={(movingQuantities[r.id] || 0) <= 0}
+                                                    className="size-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 disabled:opacity-30 transition-all font-black text-[10px]"
+                                                    title="Entrada OK"
+                                                >
+                                                    OK
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSingleAction(r, 'ENTRADA', 'Defeito Técnico')}
+                                                    disabled={(movingQuantities[r.id] || 0) <= 0}
+                                                    className="size-11 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-500/20 hover:scale-105 disabled:opacity-30 transition-all"
+                                                    title="Entrada com Defeito"
+                                                >
+                                                    <Icons.Error size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
