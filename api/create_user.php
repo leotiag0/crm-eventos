@@ -12,7 +12,7 @@ require_once __DIR__ . '/config/database.php';
 
 // CONFIGURAÇÃO DO NOVO USUÁRIO
 $nome = "Administrador";
-$email = "admin@admin.com"; // Troque pelo seu e-mail
+$email = "leotiago2005@gmail.com"; // Troque pelo seu e-mail
 $senha = "admin123";      // Troque por uma senha forte
 $papel_slug = "admin";    // Slug do papel (geralmente 'admin')
 
