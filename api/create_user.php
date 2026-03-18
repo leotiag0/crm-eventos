@@ -48,7 +48,7 @@ try {
     $hash = password_hash($senha, PASSWORD_DEFAULT);
 
     // 4. Inserir usuário
-    $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, papel_id, status) VALUES (?, ?, ?, ?, 'ativo')");
+    $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, papel_id) VALUES (?, ?, ?, ?)");
     $success = $stmt->execute([$nome, $email, $hash, $papel_id]);
 
     if ($success) {
