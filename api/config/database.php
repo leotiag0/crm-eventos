@@ -9,11 +9,23 @@ if (file_exists(__DIR__ . '/config.php')) {
     // Fallback para variáveis de ambiente diretamente se o config.php estiver no .gitignore
     require_once __DIR__ . '/env.php';
 
-    // Tenta carregar o .env de forma robusta
-    $root = $_SERVER['DOCUMENT_ROOT']; // Geralmente /.../public_html
-    Env::load($root . '/.env');        // Root (public_html)
-    Env::load(dirname($root) . '/.env'); // Um nível acima (Onde está o nosso arquivo seguro)
-    Env::load(dirname(__DIR__, 2) . '/.env'); // Fallback manual
+    // Tenta carregar o .env de forma robusta procurando em várias possibilidades
+    $root = $_SERVER['DOCUMENT_ROOT']; // Geralmente /home/user/public_html
+    $curDir = __DIR__;
+
+    $paths = [
+        $root . '/.env',                 // public_html/.env
+        dirname($root) . '/.env',        // /home/user/.env (Recomendado)
+        dirname($curDir, 2) . '/.env',   // crm-eventos/.env (se api está 2 níveis abaixo)
+        dirname($curDir, 3) . '/.env',   // Mais um nível acima
+        $curDir . '/../../.env'          // Caminho relativo a partir de api/config
+    ];
+
+    foreach ($paths as $path) {
+        if (Env::load($path)) {
+            break; // Para no primeiro que encontrar e carregar com sucesso
+        }
+    }
 
     $config = [
         'host' => Env::get('DB_HOST', 'localhost'),
@@ -58,7 +70,8 @@ try {
         "debug_info" => [
             "host" => $host,
             "db" => $db,
-            "user" => $user
+            "user" => $user,
+            "env_loaded" => Env::getLoadedPath() ?: "Nenhum arquivo .env carregado"
         ]
     ]);
     exit;

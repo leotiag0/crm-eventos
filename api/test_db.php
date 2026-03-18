@@ -15,18 +15,28 @@ require_once __DIR__ . '/config/env.php';
 
 echo "\n--- Localizando .env ---\n";
 $root = $_SERVER['DOCUMENT_ROOT'];
+$curDir = __DIR__;
 $paths = [
     $root . '/.env',
     dirname($root) . '/.env',
-    dirname(__DIR__, 2) . '/.env'
+    dirname($curDir, 1) . '/.env',
+    dirname($curDir, 2) . '/.env',
+    $curDir . '/../.env'
 ];
 
 foreach ($paths as $p) {
     if (file_exists($p)) {
-        echo "ENCONTRADO: $p\n";
-        Env::load($p);
+        $status = is_readable($p) ? "OK (Lindo)" : "FALHA (Sem permissão de leitura)";
+        echo "TESTANDO: $p -> $status\n";
+        if (Env::load($p)) {
+            echo "CARREGADO COM SUCESSO!\n";
+        }
+    } else {
+        echo "NÃO EXISTE: $p\n";
     }
 }
+
+echo "Arquivo .env efetivamente usado: " . (Env::getLoadedPath() ?: "NENHUM") . "\n";
 
 echo "\n--- Configurações Ativas ---\n";
 echo "DB_USER: " . Env::get('DB_USER') . "\n";
