@@ -8,9 +8,6 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/middleware.php';
 require_once __DIR__ . '/../services/ConfigService.php';
 
-// Proteção básica via middleware helper
-checkRole('admin');
-
 $method = $_SERVER['REQUEST_METHOD'];
 $service = new ConfigService($pdo);
 
@@ -20,6 +17,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        checkRole('admin');
         try {
             // 1. Verificar upload de arquivo
             if (isset($_FILES['logo'])) {

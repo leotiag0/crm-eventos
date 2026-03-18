@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Icons } from '../components/Icons';
 
@@ -10,6 +12,20 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
+
+    const { data: config } = useQuery({
+        queryKey: ['configuracoes-publicas'],
+        queryFn: async () => (await api.get('/configuracoes.php')).data,
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+
+    useEffect(() => {
+        if (config?.cor_primaria) {
+            const root = window.document.documentElement;
+            root.style.setProperty('--color-primary', config.cor_primaria);
+            root.style.setProperty('--color-primary-dark', config.cor_secundaria || config.cor_primaria);
+        }
+    }, [config]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,12 +46,20 @@ const Login: React.FC = () => {
             <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-500">
                 <div className="text-center space-y-4">
                     <div className="inline-flex p-4 bg-primary/10 rounded-3xl">
-                        <div className="size-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                            <Icons.Dashboard size={32} />
+                        <div className="size-24 rounded-2xl bg-white flex items-center justify-center text-white shadow-lg shadow-primary/20 overflow-hidden border border-slate-100 dark:border-white/10">
+                            {config?.logo_path ? (
+                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain p-2" />
+                            ) : (
+                                <div className="bg-primary w-full h-full flex items-center justify-center">
+                                    <Icons.Dashboard size={40} />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Bem-vindo ao CRM</h1>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                            {config?.nome_empresa || 'Bem-vindo ao CRM'}
+                        </h1>
                         <p className="text-slate-500 dark:text-slate-400 font-medium mt-2">Gestão Operacional WA Produções</p>
                     </div>
                 </div>
@@ -94,7 +118,7 @@ const Login: React.FC = () => {
                 </div>
 
                 <p className="text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                    © {new Date().getFullYear()} WA Produções - Todos os direitos reservados
+                    © {new Date().getFullYear()} {config?.nome_empresa || 'WA Produções'} - Todos os direitos reservados
                 </p>
             </div>
         </div>
