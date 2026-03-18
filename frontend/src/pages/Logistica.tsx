@@ -91,33 +91,74 @@ const Logistica: React.FC = () => {
             </div>
 
             {!selectedOrcamento ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {orcamentos?.map((o: any) => (
-                        <div
-                            key={o.id}
-                            onClick={() => setSelectedOrcamento(o)}
-                            className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary cursor-pointer transition-all group"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="text-[10px] font-black uppercase bg-primary/10 text-primary px-2 py-1 rounded">
-                                    {o.numero_sequencial ? `ORC-${new Date(o.data_inicio).getFullYear()}-${String(o.numero_sequencial).padStart(3, '0')}` : `#${o.id}`}
-                                </span>
-                                <Icons.Chevron className="text-slate-300 group-hover:translate-x-1 transition-transform" size={18} />
-                            </div>
-                            <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight">{o.cliente_nome}</p>
-                            <p className="text-xs text-slate-500 font-bold mt-1 uppercase">{new Date(o.data_inicio).toLocaleDateString()} - {o.nome_evento || 'Sem Nome'}</p>
-                            <div className="mt-6 flex items-center gap-2">
-                                <div className="size-2 rounded-full bg-emerald-500"></div>
-                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Disponível para Expedição</p>
-                            </div>
+                <div className="space-y-12">
+                    {/* Seção: Ordens do Dia */}
+                    <section>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
+                            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Ordens do Dia</h3>
+                            <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
                         </div>
-                    ))}
-                    {orcamentos?.length === 0 && (
-                        <div className="col-span-full py-20 text-center bg-slate-50 dark:bg-slate-800/20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-                            <Icons.Success className="mx-auto text-slate-200" size={48} />
-                            <p className="text-slate-400 font-bold mt-4 uppercase text-[10px] tracking-widest">Tudo em dia! Sem pendências de movimentação.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {orcamentos?.hoje?.map((o: any) => (
+                                <div
+                                    key={o.id}
+                                    onClick={() => setSelectedOrcamento(o)}
+                                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary cursor-pointer transition-all group relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 p-2">
+                                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    </div>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[10px] font-black uppercase bg-primary/10 text-primary px-2 py-1 rounded">
+                                            {o.numero_sequencial ? `ORC-${new Date(o.data_inicio).getFullYear()}-${String(o.numero_sequencial).padStart(3, '0')}` : `#${o.id}`}
+                                        </span>
+                                        <Icons.Chevron className="text-slate-300 group-hover:translate-x-1 transition-transform" size={18} />
+                                    </div>
+                                    <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight">{o.cliente_nome}</p>
+                                    <p className="text-xs text-slate-500 font-bold mt-1 uppercase">
+                                        {new Date(o.data_inicio).toLocaleDateString() === new Date().toLocaleDateString() ? 'SAÍDA HOJE' : 'RETORNO HOJE'}
+                                    </p>
+                                    <p className="text-[10px] text-slate-400 font-medium mt-2 uppercase">{o.nome_evento || 'Sem Nome'}</p>
+                                </div>
+                            ))}
+                            {orcamentos?.hoje?.length === 0 && (
+                                <div className="col-span-full py-12 text-center bg-slate-50/50 dark:bg-slate-800/10 rounded-3xl border-2 border-dashed border-slate-100 dark:border-slate-800">
+                                    <p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Nenhuma movimentação para hoje.</p>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </section>
+
+                    {/* Seção: Próximas Ordens */}
+                    <section>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
+                            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Próximas Ordens</h3>
+                            <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800"></div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {orcamentos?.proximas?.map((o: any) => (
+                                <div
+                                    key={o.id}
+                                    onClick={() => setSelectedOrcamento(o)}
+                                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary cursor-pointer transition-all group opacity-70 hover:opacity-100"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[10px] font-black uppercase bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded">
+                                            {o.numero_sequencial ? `ORC-${new Date(o.data_inicio).getFullYear()}-${String(o.numero_sequencial).padStart(3, '0')}` : `#${o.id}`}
+                                        </span>
+                                        <Icons.Chevron className="text-slate-300 group-hover:translate-x-1 transition-transform" size={18} />
+                                    </div>
+                                    <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight">{o.cliente_nome}</p>
+                                    <p className="text-xs text-primary font-black mt-1 uppercase tracking-tighter">
+                                        {new Date(o.data_inicio).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                    </p>
+                                    <p className="text-[10px] text-slate-400 font-medium mt-2 uppercase">{o.nome_evento || 'Sem Nome'}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
                 </div>
             ) : (
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden animate-in slide-in-from-right-8 duration-300">

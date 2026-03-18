@@ -44,11 +44,12 @@ CREATE TABLE IF NOT EXISTS orcamentos (
     data_inicio DATETIME NOT NULL,
     data_fim DATETIME NOT NULL,
     valor_total DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    validade_proposta INT DEFAULT 0,
+    validade_proposta DATE,
     tipo_cobranca ENUM('DIARIA', 'EVENTO') DEFAULT 'DIARIA',
     status ENUM(
         'Rascunho',
         'Enviado',
+        'Aguardando Aprovação',
         'Aprovado',
         'Recusado',
         'Cancelado',
@@ -106,6 +107,20 @@ CREATE TABLE IF NOT EXISTS reservas (
     ),
     FOREIGN KEY (orcamento_id) REFERENCES orcamentos (id) ON DELETE CASCADE,
     FOREIGN KEY (equipamento_id) REFERENCES equipamentos (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+-- Tabela de Movimentações de Logística
+CREATE TABLE IF NOT EXISTS movimentacoes_logistica (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    orcamento_id INT NOT NULL,
+    equipamento_id INT NOT NULL,
+    tipo ENUM('SAIDA', 'ENTRADA') NOT NULL,
+    quantidade INT NOT NULL,
+    usuario_id INT,
+    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (orcamento_id) REFERENCES orcamentos (id) ON DELETE CASCADE,
+    FOREIGN KEY (equipamento_id) REFERENCES equipamentos (id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE SET NULL
 ) ENGINE = InnoDB;
 
 -- Tabela de Papéis (RBAC)

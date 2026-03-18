@@ -200,7 +200,7 @@ const Orcamentos: React.FC = () => {
             condicoes_fornecimento: condicoesFornecimento,
             validade_proposta: validadeProposta,
             itens: items,
-            status: action === 'approve' ? 'Aprovado' : 'Rascunho'
+            status: action === 'approve' ? 'Aprovado' : 'Aguardando Aprovação'
         };
         if (selectedId) payload.id = selectedId;
 
@@ -283,7 +283,8 @@ const Orcamentos: React.FC = () => {
                                     <td className="px-6 py-4 text-center">
                                         <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${orc.status === 'Aprovado' ? 'bg-green-100 text-green-600 dark:bg-green-900/20' :
                                             orc.status === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
-                                                'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
+                                                orc.status === 'Aguardando Aprovação' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
+                                                    'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
                                             }`}>
                                             {orc.status}
                                         </span>
@@ -605,17 +606,19 @@ const Orcamentos: React.FC = () => {
                             {calculateTotals().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </h3>
                         <div className="mt-8 space-y-3">
-                            <button
-                                onClick={() => handleAction('approve')}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
-                            >
-                                Gerar & Aprovar
-                            </button>
+                            {(!selectedId || orcamentos?.find((o: any) => o.id === selectedId)?.status === 'Aguardando Aprovação') && (
+                                <button
+                                    onClick={() => handleAction('approve')}
+                                    className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-emerald-600/20"
+                                >
+                                    Aprovar Proposta
+                                </button>
+                            )}
                             <button
                                 onClick={() => handleAction('save')}
-                                className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
+                                className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
                             >
-                                Apenas Rascunho
+                                {selectedId ? 'Salvar Alterações' : 'Gerar para Aprovação'}
                             </button>
                             <button
                                 onClick={() => setView('list')}

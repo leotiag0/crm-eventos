@@ -12,15 +12,37 @@ class LogisticaService
         $this->pdo = $pdo;
     }
 
-    public function listAwaiting()
+    public function listToday()
     {
         $stmt = $this->pdo->query("
             SELECT o.*, c.nome as cliente_nome 
             FROM orcamentos o 
             JOIN clientes c ON o.cliente_id = c.id 
-            WHERE o.status = 'Aprovado'
+            WHERE o.status = 'Aprovado' 
+            AND (DATE(o.data_inicio) = CURDATE() OR DATE(o.data_fim) = CURDATE())
         ");
         return $stmt->fetchAll();
+    }
+
+    public function listUpcoming()
+    {
+        $stmt = $this->pdo->query("
+            SELECT o.*, c.nome as cliente_nome 
+            FROM orcamentos o 
+            JOIN clientes c ON o.cliente_id = c.id 
+            WHERE o.status = 'Aprovado' 
+            AND DATE(o.data_inicio) > CURDATE()
+            ORDER BY o.data_inicio ASC
+        ");
+        return $stmt->fetchAll();
+    }
+
+    public function listAwaiting()
+    {
+        return [
+            'hoje' => $this->listToday(),
+            'proximas' => $this->listUpcoming()
+        ];
     }
 
     public function listReservasByOrcamento($orcamentoId)
@@ -38,24 +60,23 @@ class LogisticaService
     public function checkout($data)
     {
         $orcamentoId = $data['orcamento_id'] ?? null;
-        $itens = $data['itens'] ?? []; // Itens a serem retirados
+        $itens = $data['itens'] ?? [];
 
         if (empty($orcamentoId)) {
-            throw new Exception("ID do orçamento é obrigatório para check-out");
+            throw new Exception("ID do orçamento é obrigatório");
         }
 
         try {
             $this->pdo->beginTransaction();
 
+            $usuarioId = $_SESSION['user']['id'] ?? null;
             foreach ($itens as $item) {
-                // Registrar movimentação de SAÍDA
                 $stmtMov = $this->pdo->prepare("INSERT INTO movimentacoes_logistica (orcamento_id, equipamento_id, tipo, quantidade, usuario_id) VALUES (?, ?, 'SAIDA', ?, ?)");
-                $usuarioId = $_SESSION['user']['id'] ?? null;
                 $stmtMov->execute([$orcamentoId, $item['equipamento_id'], $item['quantidade'], $usuarioId]);
             }
 
             $this->pdo->commit();
-            return "Check-out registrado com sucesso.";
+            return "Saída registrada com sucesso.";
         } catch (Exception $e) {
             $this->pdo->rollBack();
             throw $e;

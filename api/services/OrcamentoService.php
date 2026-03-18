@@ -80,9 +80,9 @@ class OrcamentoService
         try {
             $oldStatus = $id ? $this->getCurrentStatus($id) : null;
 
-            // 1. Validar disponibilidade se for Aprovação
+            // 1. Validar disponibilidade e validade se for Aprovação
             if ($action === 'approve') {
-                $this->validateAvailability($data);
+                $this->validateApproval($data);
             }
 
             // 2. Inserir/Atualizar Orçamento
@@ -125,6 +125,22 @@ class OrcamentoService
         $stmt->execute([$orcamentoId, $oldStatus, $newStatus, $usuarioId]);
     }
 
+    private function validateApproval($data)
+    {
+        $id = $data['id'] ?? null;
+        if ($id) {
+            $stmtVal = $this->pdo->prepare("SELECT validade_proposta FROM orcamentos WHERE id = ?");
+            $stmtVal->execute([$id]);
+            $validade = $stmtVal->fetchColumn();
+
+            if ($validade && $validade !== '0000-00-00' && strtotime($validade) < strtotime(date('Y-m-d'))) {
+                throw new Exception("A proposta expirou em " . date('d/m/Y', strtotime($validade)) . ". Não é possível aprovar.");
+            }
+        }
+
+        $this->validateAvailability($data);
+    }
+
     private function validateAvailability($data)
     {
         foreach ($data['itens'] as $item) {
@@ -151,7 +167,7 @@ class OrcamentoService
 
     private function saveOrcamento($data)
     {
-        $status = ($data['action'] === 'approve') ? 'Aprovado' : ($data['status'] ?? 'Rascunho');
+        $status = ($data['action'] === 'approve') ? 'Aprovado' : ($data['status'] ?? 'Aguardando Aprovação');
         $numero_sequencial = null;
         $id = $data['id'] ?? null;
 
