@@ -25,6 +25,20 @@ const Login: React.FC = () => {
             root.style.setProperty('--color-primary', config.cor_primaria);
             root.style.setProperty('--color-primary-dark', config.cor_secundaria || config.cor_primaria);
         }
+
+        if (config?.nome_empresa) {
+            document.title = config.nome_empresa + " - Autenticação";
+        }
+
+        if (config?.logo_path) {
+            let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = config.logo_path;
+        }
     }, [config]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +74,7 @@ const Login: React.FC = () => {
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                             {config?.nome_empresa || 'Bem-vindo ao CRM'}
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-2">Gestão Operacional WA Produções</p>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-2">Gestão Operacional {config?.nome_empresa || 'CRM Eventos'}</p>
                     </div>
                 </div>
 
@@ -118,7 +132,7 @@ const Login: React.FC = () => {
                 </div>
 
                 <p className="text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                    © {new Date().getFullYear()} {config?.nome_empresa || 'WA Produções'} - Todos os direitos reservados
+                    © {new Date().getFullYear()} {config?.nome_empresa || 'CRM Eventos'} - Todos os direitos reservados
                 </p>
             </div>
         </div>

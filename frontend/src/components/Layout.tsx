@@ -43,6 +43,20 @@ const Layout: React.FC = () => {
             root.style.setProperty('--color-primary-dark', config.cor_secundaria || config.cor_primaria);
         }
 
+        if (config?.nome_empresa) {
+            document.title = config.nome_empresa + " - Gestão Operacional";
+        }
+
+        if (config?.logo_path) {
+            let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = config.logo_path;
+        }
+
         if (isDarkMode) {
             root.classList.add('dark');
             localStorage.setItem('theme', 'dark');
@@ -90,7 +104,7 @@ const Layout: React.FC = () => {
                         {(isSidebarOpen || (isMobileMenuOpen && window.innerWidth <= 1024)) && (
                             <div className="flex flex-col">
                                 <h1 className="text-slate-900 dark:text-white text-base font-black leading-none uppercase tracking-tighter text-left">
-                                    {config?.nome_empresa || 'WA Produções'}
+                                    {config?.nome_empresa || 'CRM Eventos'}
                                 </h1>
                                 <p className="text-primary text-[8px] mt-1 font-black tracking-[0.2em] text-left uppercase italic">Gestão Operacional</p>
                             </div>

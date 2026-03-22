@@ -27,11 +27,20 @@ const PropostaCliente: React.FC = () => {
             const num = String(orcamento.numero_sequencial || orcamento.id).padStart(3, '0');
             document.title = `Proposta_${orcamento.cliente_nome}_${date}_${num}`;
         }
+        if (config?.logo_path) {
+            let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = config.logo_path;
+        }
     }, [config, orcamento]);
 
     const isLoading = loadingOrcamento || loadingConfig;
 
-    if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center font-bold text-primary animate-pulse">PREPARANDO PROPOSTA WA PRODUÇÕES...</div>;
+    if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center font-bold text-primary animate-pulse">PREPARANDO PROPOSTA CRM EVENTOS...</div>;
     if (!orcamento) return <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">ORÇAMENTO NÃO ENCONTRADO.</div>;
 
     // Group items by section
@@ -148,7 +157,7 @@ const PropostaCliente: React.FC = () => {
                             )}
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">{config?.nome_empresa || 'WA Produções'}</h1>
+                            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">{config?.nome_empresa || 'CRM Eventos'}</h1>
                             <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mt-1 italic">Locação & Engenharia</p>
                         </div>
                     </div>
@@ -249,7 +258,7 @@ const PropostaCliente: React.FC = () => {
                     <div className="print-no-break">
                         <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 print:mb-1 print:text-[8px]">Fornecimento</p>
                         <div className="bg-slate-50 p-8 rounded-[2rem] text-sm font-medium leading-relaxed whitespace-pre-wrap print:p-4 print:rounded-xl print:text-[9px]">
-                            {orcamento.condicoes_fornecimento || "Padrão WA Produções de qualidade técnica."}
+                            {orcamento.condicoes_fornecimento || `Padrão ${config?.nome_empresa || 'CRM Eventos'} de qualidade técnica.`}
                         </div>
                     </div>
                 </section>
@@ -259,7 +268,7 @@ const PropostaCliente: React.FC = () => {
                     <div className="max-w-xs">
                         <p className="text-[10px] font-black uppercase tracking-widest text-black mb-6">Nota Jurídica</p>
                         <p className="text-[11px] leading-relaxed font-medium">
-                            {config?.razao_social || 'WA Produções'} - {config?.cnpj ? `CNPJ: ${config.cnpj}` : 'Contrato de Locação Técnica'}
+                            {config?.razao_social || config?.nome_empresa || 'Documento Comercial'} - {config?.cnpj ? `CNPJ: ${config.cnpj}` : 'Contrato de Locação Técnica'}
                             <br /><br />
                             A contratação engloba locação técnica sob normas de segurança. Equipamentos segurados pela empresa. Eventuais danos decorrentes de mau uso por terceiros são de responsabilidade do contratante.
                         </p>

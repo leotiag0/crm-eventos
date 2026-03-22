@@ -18,6 +18,26 @@ const Romaneio: React.FC = () => {
         queryFn: async () => (await api.get('/configuracoes.php')).data,
     });
 
+    React.useEffect(() => {
+        if (config?.cor_primaria) {
+            document.documentElement.style.setProperty('--color-primary', config.cor_primaria);
+        }
+        if (orcamento) {
+            const date = new Date(orcamento.data_inicio).getFullYear();
+            const num = String(orcamento.numero_sequencial || orcamento.id).padStart(3, '0');
+            document.title = `Romaneio_${orcamento.cliente_nome}_${date}_${num}`;
+        }
+        if (config?.logo_path) {
+            let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = config.logo_path;
+        }
+    }, [config, orcamento]);
+
     const isLoading = loadingOrcamento || loadingConfig;
 
     const handlePrint = () => {
@@ -69,7 +89,7 @@ const Romaneio: React.FC = () => {
                             )}
                         </div>
                         <div>
-                            <h1 className="text-xl font-black uppercase tracking-tight">{config?.nome_empresa || 'WA Produções'}</h1>
+                            <h1 className="text-xl font-black uppercase tracking-tight">{config?.nome_empresa || 'CRM Eventos'}</h1>
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Engenharia de Eventos & Logística</p>
                         </div>
                     </div>
@@ -136,7 +156,7 @@ const Romaneio: React.FC = () => {
                 <div className="mt-24 grid grid-cols-2 gap-12 border-t border-slate-100 pt-12 print:mt-10 print:pt-4 print:gap-8">
                     <div className="text-center">
                         <div className="border-b border-slate-900 pb-1 mb-2 print:mb-1"></div>
-                        <p className="text-[10px] font-black uppercase tracking-widest print:text-[8px]">Responsável WA Produções</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest print:text-[8px]">Responsável {config?.nome_empresa || 'CRM Eventos'}</p>
                         <p className="text-[8px] text-slate-400 uppercase mt-1 print:hidden">Conferência de Saída</p>
                     </div>
                     <div className="text-center">
@@ -148,7 +168,7 @@ const Romaneio: React.FC = () => {
 
                 {/* Footer */}
                 <footer className="mt-12 text-[8px] text-slate-400 uppercase font-black tracking-[0.3em] text-center border-t border-slate-50 pt-6">
-                    Gerado em {new Date().toLocaleString('pt-BR')} • Sistema CRM Eventos • {config?.nome_empresa || 'WA Produções'}
+                    Gerado em {new Date().toLocaleString('pt-BR')} • Sistema CRM Eventos • {config?.nome_empresa || 'CRM Eventos'}
                 </footer>
 
                 <style dangerouslySetInnerHTML={{

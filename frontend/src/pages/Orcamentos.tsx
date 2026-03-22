@@ -350,7 +350,7 @@ const Orcamentos: React.FC = () => {
                                     {selectedId ? `Orçamento #${selectedId}` : 'Novo Orçamento'}
                                 </h2>
                                 <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs font-bold mt-1 uppercase tracking-tight">
-                                    {config?.nome_empresa || 'WA Produções'} - Montagem Técnica
+                                    {config?.nome_empresa || 'CRM Eventos'} - Montagem Técnica
                                 </p>
                             </div>
                         </div>
