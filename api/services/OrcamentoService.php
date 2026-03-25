@@ -71,7 +71,7 @@ class OrcamentoService
             $stmtStatus = $this->pdo->prepare("SELECT status FROM orcamentos WHERE id = ?");
             $stmtStatus->execute([$id]);
             $currentStatus = $stmtStatus->fetchColumn();
-            if (in_array($currentStatus, ['Finalizado', 'Cancelado'])) {
+            if (in_array($currentStatus, ['Aprovado', 'Finalizado', 'Cancelado'])) {
                 throw new Exception("Orçamentos com status '$currentStatus' não podem ser editados.");
             }
         }

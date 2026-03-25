@@ -8,33 +8,46 @@ interface BudgetRowProps {
     item: ItemBudget;
     onUpdateQtd: (id: number, secao: string, val: number) => void;
     onRemove: (id: number, secao: string) => void;
+    isLocked?: boolean;
 }
 
-const BudgetRow = memo(({ item, onUpdateQtd, onRemove }: BudgetRowProps) => {
+const BudgetRow = memo(({ item, onUpdateQtd, onRemove, isLocked }: BudgetRowProps) => {
     return (
         <tr className="hover:bg-slate-50/20 dark:hover:bg-slate-800/10 transition-colors flex flex-col md:table-row border-b border-slate-100 dark:border-slate-800 md:border-none p-4 md:p-0">
             <td className="md:px-6 md:py-4 pb-3 md:pb-4 flex justify-between items-start md:table-cell">
                 <p className="text-sm md:text-xs font-black text-slate-900 dark:text-white uppercase">{item.nome}</p>
-                <div className="md:hidden">
-                    <button onClick={() => onRemove(item.equipamento_id, item.secao)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20 rounded-xl transition-colors">
-                        <Icons.Close size={20} />
-                    </button>
-                </div>
+                {!isLocked && (
+                    <div className="md:hidden">
+                        <button onClick={() => onRemove(item.equipamento_id, item.secao)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20 rounded-xl transition-colors">
+                            <Icons.Close size={20} />
+                        </button>
+                    </div>
+                )}
             </td>
             <td className="md:px-6 md:py-4 text-center pb-2 md:pb-4">
                 <div className="flex items-center justify-between md:justify-center gap-4">
                     <span className="text-xs font-bold text-slate-500 uppercase md:hidden tracking-widest">QTD</span>
-                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-1 border border-slate-200 dark:border-slate-700">
-                        <button onClick={() => onUpdateQtd(item.equipamento_id, item.secao, item.quantidade - 1)} className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:text-primary shadow-sm transition-all text-lg font-black">-</button>
+                    <div className={`flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-1 border border-slate-200 dark:border-slate-700 ${isLocked ? 'opacity-50' : ''}`}>
+                        <button
+                            disabled={isLocked}
+                            onClick={() => onUpdateQtd(item.equipamento_id, item.secao, item.quantidade - 1)}
+                            className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:text-primary shadow-sm transition-all text-lg font-black disabled:hidden"
+                        >-</button>
                         <span className="text-sm font-black dark:text-white w-8 text-center">{item.quantidade}</span>
-                        <button onClick={() => onUpdateQtd(item.equipamento_id, item.secao, item.quantidade + 1)} className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:text-primary shadow-sm transition-all text-lg font-black">+</button>
+                        <button
+                            disabled={isLocked}
+                            onClick={() => onUpdateQtd(item.equipamento_id, item.secao, item.quantidade + 1)}
+                            className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:text-primary shadow-sm transition-all text-lg font-black disabled:hidden"
+                        >+</button>
                     </div>
                 </div>
             </td>
             <td className="px-6 py-4 text-right hidden md:table-cell">
-                <button onClick={() => onRemove(item.equipamento_id, item.secao)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto">
-                    <Icons.Close size={20} />
-                </button>
+                {!isLocked && (
+                    <button onClick={() => onRemove(item.equipamento_id, item.secao)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto">
+                        <Icons.Close size={20} />
+                    </button>
+                )}
             </td>
         </tr>
     );
@@ -94,9 +107,13 @@ const Orcamentos: React.FC = () => {
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
 
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+
     // List Filters
     const [listSearch, setListSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('Todos');
+
+    const isLocked = ['Aprovado', 'Finalizado', 'Cancelado'].includes(selectedStatus || '');
 
     // Queries
     const { data: orcamentos } = useQuery({
@@ -130,6 +147,7 @@ const Orcamentos: React.FC = () => {
         setItems([]);
         setClienteId('');
         setSelectedId(null);
+        setSelectedStatus(null);
         setDataInicio(format(new Date(), 'yyyy-MM-dd HH:mm'));
         setDataFim(format(addDays(new Date(), 1), 'yyyy-MM-dd HH:mm'));
     };
@@ -137,6 +155,7 @@ const Orcamentos: React.FC = () => {
     const handleEdit = async (orc: Orcamento) => {
         const fullOrc = (await api.get(`/orcamentos.php?id=${orc.id}`)).data;
         setSelectedId(fullOrc.id);
+        setSelectedStatus(fullOrc.status);
         setClienteId(fullOrc.cliente_id);
         setDataInicio(format(new Date(fullOrc.data_inicio), 'yyyy-MM-dd HH:mm'));
         setDataFim(format(new Date(fullOrc.data_fim), 'yyyy-MM-dd HH:mm'));
@@ -365,9 +384,10 @@ const Orcamentos: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${orc.status === 'Aprovado' ? 'bg-green-100 text-green-600 dark:bg-green-900/20' :
-                                            orc.status === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
-                                                orc.status === 'Aguardando Aprovação' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
-                                                    'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
+                                            orc.status === 'Finalizado' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' :
+                                                orc.status === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
+                                                    orc.status === 'Aguardando Aprovação' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
+                                                        'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
                                             }`}>
                                             {orc.status}
                                         </span>
@@ -377,9 +397,9 @@ const Orcamentos: React.FC = () => {
                                             <button
                                                 onClick={() => handleEdit(orc)}
                                                 className="p-2 text-slate-400 hover:text-primary transition-colors hover:bg-primary/10 rounded-xl"
-                                                title="Editar"
+                                                title={['Aprovado', 'Finalizado', 'Cancelado'].includes(orc.status) ? 'Visualizar' : 'Editar'}
                                             >
-                                                <Icons.Settings size={16} />
+                                                {['Aprovado', 'Finalizado', 'Cancelado'].includes(orc.status) ? <Icons.Search size={16} /> : <Icons.Settings size={16} />}
                                             </button>
                                             <button
                                                 onClick={() => window.open(`/proposta/${orc.id}`, '_blank')}
@@ -420,9 +440,10 @@ const Orcamentos: React.FC = () => {
                                     </p>
                                 </div>
                                 <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${orc.status === 'Aprovado' ? 'bg-green-100 text-green-600 dark:bg-green-900/20' :
-                                    orc.status === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
-                                        orc.status === 'Aguardando Aprovação' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
-                                            'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
+                                    orc.status === 'Finalizado' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20' :
+                                        orc.status === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
+                                            orc.status === 'Aguardando Aprovação' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
+                                                'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
                                     }`}>
                                     {orc.status}
                                 </span>
@@ -443,7 +464,11 @@ const Orcamentos: React.FC = () => {
                             </div>
                             <div className="flex gap-2 mt-1">
                                 <button onClick={() => handleEdit(orc)} className="flex-1 py-4 bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 min-h-[44px]">
-                                    <Icons.Settings size={16} /> Editar
+                                    {['Aprovado', 'Finalizado', 'Cancelado'].includes(orc.status) ? (
+                                        <><Icons.Search size={16} /> Ver Detalhes</>
+                                    ) : (
+                                        <><Icons.Settings size={16} /> Editar</>
+                                    )}
                                 </button>
                                 <button onClick={() => window.open(`/proposta/${orc.id}`, '_blank')} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 min-h-[44px]">
                                     <Icons.Printer size={16} /> PDF
@@ -500,6 +525,21 @@ const Orcamentos: React.FC = () => {
                     </div>
                 )}
 
+                {isLocked && (
+                    <div className="bg-slate-900 text-white p-4 rounded-2xl flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center gap-3">
+                            <div className="size-8 rounded-xl bg-white/10 flex items-center justify-center">
+                                <Icons.Warning size={16} className="text-amber-400" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest leading-none">Proposta Bloqueada</p>
+                                <p className="text-[9px] font-medium opacity-60 uppercase mt-0.5">Status: {selectedStatus}. Não é permitido alterar itens ou datas.</p>
+                            </div>
+                        </div>
+                        <span className="text-[8px] font-black uppercase bg-white/10 px-2 py-1 rounded">Read Only</span>
+                    </div>
+                )}
+
                 {successMsg && (
                     <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
                         <div className="size-8 rounded-xl bg-green-500 flex items-center justify-center text-white shrink-0">
@@ -522,9 +562,10 @@ const Orcamentos: React.FC = () => {
                             </button>
                         </div>
                         <select
+                            disabled={isLocked}
                             value={clienteId}
                             onChange={(e) => setClienteId(Number(e.target.value))}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white disabled:opacity-50"
                         >
                             <option value="">Selecione...</option>
                             {clientes?.map((c: any) => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -533,19 +574,21 @@ const Orcamentos: React.FC = () => {
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Início</label>
                         <input
+                            disabled={isLocked}
                             type="datetime-local"
                             value={dataInicio}
                             onChange={(e) => setDataInicio(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white disabled:opacity-50"
                         />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Fim</label>
                         <input
+                            disabled={isLocked}
                             type="datetime-local"
                             value={dataFim}
                             onChange={(e) => setDataFim(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white disabled:opacity-50"
                         />
                     </div>
                 </div>
@@ -554,31 +597,35 @@ const Orcamentos: React.FC = () => {
                     <div className="space-y-1.5 md:col-span-1">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Validade da Proposta</label>
                         <input
+                            disabled={isLocked}
                             type="date"
                             value={validadeProposta}
                             onChange={(e) => setValidadeProposta(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white disabled:opacity-50"
                         />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Nome do Evento</label>
                         <input
+                            disabled={isLocked}
                             placeholder="Ex: Casamento Marina & João"
                             value={nomeEvento}
                             onChange={(e) => setNomeEvento(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white disabled:opacity-50"
                         />
                     </div>
                     <div className="space-y-1.5 md:col-span-1">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Cobrança</label>
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                        <div className={`flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}>
                             <button
+                                disabled={isLocked}
                                 onClick={() => setTipoCobranca('DIARIA')}
                                 className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${tipoCobranca === 'DIARIA' ? 'bg-primary text-white shadow-sm' : 'text-slate-400'}`}
                             >
                                 DIÁRIA
                             </button>
                             <button
+                                disabled={isLocked}
                                 onClick={() => setTipoCobranca('EVENTO')}
                                 className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${tipoCobranca === 'EVENTO' ? 'bg-primary text-white shadow-sm' : 'text-slate-400'}`}
                             >
@@ -589,10 +636,11 @@ const Orcamentos: React.FC = () => {
                     <div className="space-y-1.5 md:col-span-4">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Local do Evento</label>
                         <input
+                            disabled={isLocked}
                             placeholder="Endereço completo da montagem"
                             value={enderecoEvento}
                             onChange={(e) => setEnderecoEvento(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold focus:ring-primary dark:text-white disabled:opacity-50"
                         />
                     </div>
                 </div>
@@ -602,18 +650,20 @@ const Orcamentos: React.FC = () => {
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Condições de Pagamento</label>
                         <textarea
+                            disabled={isLocked}
                             value={condicoesPagamento}
                             onChange={(e) => setCondicoesPagamento(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-xs font-bold focus:ring-primary dark:text-white min-h-[80px]"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-xs font-bold focus:ring-primary dark:text-white min-h-[80px] disabled:opacity-50"
                             placeholder="Ex: 50% ato, 50% entrega..."
                         />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Condições de Fornecimento</label>
                         <textarea
+                            disabled={isLocked}
                             value={condicoesFornecimento}
                             onChange={(e) => setCondicoesFornecimento(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-xs font-bold focus:ring-primary dark:text-white min-h-[80px]"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-xs font-bold focus:ring-primary dark:text-white min-h-[80px] disabled:opacity-50"
                             placeholder="Ex: Incluso transporte, montagem..."
                         />
                     </div>
@@ -630,27 +680,29 @@ const Orcamentos: React.FC = () => {
                             {s}
                         </button>
                     ))}
-                    <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 ml-2">
-                        <input
-                            type="text"
-                            placeholder="Nova seção..."
-                            className="bg-transparent border-none text-xs font-bold w-24 focus:ring-0 dark:text-white pl-2"
-                            value={newSectionName}
-                            onChange={(e) => setNewSectionName(e.target.value)}
-                        />
-                        <button
-                            onClick={() => {
-                                if (!newSectionName) return;
-                                if (sections.includes(newSectionName)) return alert('Seção já existe');
-                                setSections([...sections, newSectionName]);
-                                setActiveSection(newSectionName);
-                                setNewSectionName('');
-                            }}
-                            className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500"
-                        >
-                            {Icons.Add && <Icons.Add size={14} />}
-                        </button>
-                    </div>
+                    {!isLocked && (
+                        <div className="flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 ml-2">
+                            <input
+                                type="text"
+                                placeholder="Nova seção..."
+                                className="bg-transparent border-none text-xs font-bold w-24 focus:ring-0 dark:text-white pl-2"
+                                value={newSectionName}
+                                onChange={(e) => setNewSectionName(e.target.value)}
+                            />
+                            <button
+                                onClick={() => {
+                                    if (!newSectionName) return;
+                                    if (sections.includes(newSectionName)) return alert('Seção já existe');
+                                    setSections([...sections, newSectionName]);
+                                    setActiveSection(newSectionName);
+                                    setNewSectionName('');
+                                }}
+                                className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500"
+                            >
+                                {Icons.Add && <Icons.Add size={14} />}
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Omnibox Search */}
@@ -699,7 +751,7 @@ const Orcamentos: React.FC = () => {
                             <table className="w-full text-left md:table block">
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 md:table-row-group block">
                                     {items.filter(i => i.secao === secao).map(item => (
-                                        <BudgetRow key={`${item.equipamento_id}-${item.secao}`} item={item} onUpdateQtd={updateQtd} onRemove={removeItem} />
+                                        <BudgetRow key={`${item.equipamento_id}-${item.secao}`} item={item} onUpdateQtd={updateQtd} onRemove={removeItem} isLocked={isLocked} />
                                     ))}
                                 </tbody>
                             </table>
@@ -727,25 +779,36 @@ const Orcamentos: React.FC = () => {
                                 </h3>
                             </div>
                             <div className="flex flex-row lg:flex-col gap-2 lg:gap-3 lg:mt-8 w-full lg:w-auto">
-                                {(!selectedId || orcamentos?.find((o: any) => o.id === selectedId)?.status === 'Aguardando Aprovação') && (
+                                {!isLocked ? (
+                                    <>
+                                        {(!selectedId || orcamentos?.find((o: any) => o.id === selectedId)?.status === 'Aguardando Aprovação') && (
+                                            <button
+                                                onClick={() => handleAction('approve')}
+                                                className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-emerald-600 text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                            >
+                                                <span className="hidden lg:inline">Aprovar Proposta</span>
+                                                <span className="lg:hidden">Aprovar</span>
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleAction('save')}
+                                            className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-primary text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                        >
+                                            {selectedId ? (
+                                                <><span className="hidden lg:inline">Salvar Alterações</span><span className="lg:hidden">Salvar</span></>
+                                            ) : (
+                                                <><span className="hidden lg:inline">Gerar para Aprovação</span><span className="lg:hidden">Gerar</span></>
+                                            )}
+                                        </button>
+                                    </>
+                                ) : (
                                     <button
-                                        onClick={() => handleAction('approve')}
-                                        className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-emerald-600 text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                        onClick={() => setView('list')}
+                                        className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-slate-700 text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
                                     >
-                                        <span className="hidden lg:inline">Aprovar Proposta</span>
-                                        <span className="lg:hidden">Aprovar</span>
+                                        Voltar para Lista
                                     </button>
                                 )}
-                                <button
-                                    onClick={() => handleAction('save')}
-                                    className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-primary text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                >
-                                    {selectedId ? (
-                                        <><span className="hidden lg:inline">Salvar Alterações</span><span className="lg:hidden">Salvar</span></>
-                                    ) : (
-                                        <><span className="hidden lg:inline">Gerar para Aprovação</span><span className="lg:hidden">Gerar</span></>
-                                    )}
-                                </button>
                                 <button
                                     onClick={() => setView('list')}
                                     className="hidden lg:block w-full py-4 bg-transparent text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:text-white transition-all"

@@ -23,6 +23,9 @@ switch ($method) {
             } else if ($type === 'checkin') {
                 $message = $service->checkin($data);
                 sendSuccess($message);
+            } else if ($type === 'finalize') {
+                $message = $service->finalizeEvent($data);
+                sendSuccess($message);
             } else {
                 sendError("Tipo de operação inválida", 400);
             }

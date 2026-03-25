@@ -124,4 +124,35 @@ class LogisticaService
             throw $e;
         }
     }
+
+    public function finalizeEvent($data)
+    {
+        $orcamentoId = $data['orcamento_id'] ?? null;
+        if (empty($orcamentoId)) {
+            throw new Exception("ID do orçamento é obrigatório");
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+            
+            // 1. Mudar status do orçamento
+            $stmt = $this->pdo->prepare("UPDATE orcamentos SET status = 'Finalizado' WHERE id = ?");
+            $stmt->execute([$orcamentoId]);
+
+            // 2. Cancelar as reservas (liberar estoque permanentemente)
+            $stmtRes = $this->pdo->prepare("UPDATE reservas SET status = 'CANCELADA' WHERE orcamento_id = ?");
+            $stmtRes->execute([$orcamentoId]);
+
+            // 3. Registrar no histórico
+            $stmtHist = $this->pdo->prepare("INSERT INTO orcamento_historico (orcamento_id, status_anterior, status_novo, usuario_id) VALUES (?, 'Aprovado', 'Finalizado', ?)");
+            $usuarioId = $_SESSION['user']['id'] ?? null;
+            $stmtHist->execute([$orcamentoId, $usuarioId]);
+
+            $this->pdo->commit();
+            return "Evento finalizado com sucesso.";
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
 }

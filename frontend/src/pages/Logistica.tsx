@@ -59,6 +59,14 @@ const Logistica: React.FC = () => {
         });
     };
 
+    const handleFinalizeEvent = () => {
+        if (!confirm('Deseja realmente finalizar este evento? Isso encerrará a logística e ocultará a ordem do seu painel.')) return;
+        movementMutation.mutate({
+            tipo: 'finalize',
+            orcamento_id: selectedOrcamento.id
+        });
+    };
+
     const handleSingleAction = (reserva: any, tipo: 'SAIDA' | 'ENTRADA', statusItem: string = 'Disponível') => {
         const qty = movingQuantities[reserva.id] || 0;
         if (qty <= 0) return alert('Informe a quantidade');
@@ -78,6 +86,8 @@ const Logistica: React.FC = () => {
     const updateQty = (id: number, max: number, val: number) => {
         setMovingQuantities({ ...movingQuantities, [id]: Math.max(0, Math.min(max, val)) });
     };
+
+    const isFullyReturned = reservas?.length > 0 && reservas.every((r: any) => r.qtd_entrada >= r.qtd);
 
     if (isLoading) return <div className="p-8">Carregando painel logístico...</div>;
 
@@ -282,15 +292,38 @@ const Logistica: React.FC = () => {
                             ))}
                         </div>
 
-                        <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">* Utilize os botões laterais para registrar cada item individualmente.</p>
-                            <button
-                                onClick={handleBatchCheckout}
-                                disabled={Object.values(movingQuantities).every(v => v === 0)}
-                                className="px-12 py-5 bg-primary text-white rounded-[24px] font-black uppercase tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all"
-                            >
-                                Registrar Saída em Lote
-                            </button>
+                        <div className="mt-12">
+                            {isFullyReturned ? (
+                                <div className="border border-emerald-200 dark:border-emerald-900/30 flex flex-col md:flex-row justify-between items-center bg-emerald-50/50 dark:bg-emerald-900/10 p-6 md:p-8 rounded-3xl gap-6 animate-in zoom-in-95 duration-500">
+                                    <div className="flex items-center gap-4 text-emerald-600 dark:text-emerald-400">
+                                        <div className="size-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                                            <Icons.Success size={32} />
+                                        </div>
+                                        <div>
+                                            <p className="text-xl font-black uppercase tracking-tight">Carga Integral Devolvida</p>
+                                            <p className="text-xs font-bold opacity-80 uppercase tracking-widest mt-1">Todos os equipamentos retornaram à base.</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleFinalizeEvent}
+                                        className="w-full md:w-auto px-12 py-5 bg-emerald-500 text-white rounded-[24px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                    >
+                                        <Icons.CheckCircle size={20} className="hidden md:block" />
+                                        Finalizar Evento
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="pt-8 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-center md:text-left">* Utilize os botões laterais para registrar cada item individualmente.</p>
+                                    <button
+                                        onClick={handleBatchCheckout}
+                                        disabled={Object.values(movingQuantities).every(v => v === 0)}
+                                        className="w-full md:w-auto px-12 py-5 bg-primary text-white rounded-[24px] font-black uppercase tracking-widest shadow-2xl shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale transition-all"
+                                    >
+                                        Registrar Saída em Lote
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
