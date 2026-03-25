@@ -1,8 +1,44 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 import { Icons } from '../components/Icons';
 import { format, addDays } from 'date-fns';
+
+interface BudgetRowProps {
+    item: ItemBudget;
+    onUpdateQtd: (id: number, secao: string, val: number) => void;
+    onRemove: (id: number, secao: string) => void;
+}
+
+const BudgetRow = memo(({ item, onUpdateQtd, onRemove }: BudgetRowProps) => {
+    return (
+        <tr className="hover:bg-slate-50/20 dark:hover:bg-slate-800/10 transition-colors flex flex-col md:table-row border-b border-slate-100 dark:border-slate-800 md:border-none p-4 md:p-0">
+            <td className="md:px-6 md:py-4 pb-3 md:pb-4 flex justify-between items-start md:table-cell">
+                <p className="text-sm md:text-xs font-black text-slate-900 dark:text-white uppercase">{item.nome}</p>
+                <div className="md:hidden">
+                    <button onClick={() => onRemove(item.equipamento_id, item.secao)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/20 rounded-xl transition-colors">
+                        <Icons.Close size={20} />
+                    </button>
+                </div>
+            </td>
+            <td className="md:px-6 md:py-4 text-center pb-2 md:pb-4">
+                <div className="flex items-center justify-between md:justify-center gap-4">
+                    <span className="text-xs font-bold text-slate-500 uppercase md:hidden tracking-widest">QTD</span>
+                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-1 border border-slate-200 dark:border-slate-700">
+                        <button onClick={() => onUpdateQtd(item.equipamento_id, item.secao, item.quantidade - 1)} className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:text-primary shadow-sm transition-all text-lg font-black">-</button>
+                        <span className="text-sm font-black dark:text-white w-8 text-center">{item.quantidade}</span>
+                        <button onClick={() => onUpdateQtd(item.equipamento_id, item.secao, item.quantidade + 1)} className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-700 hover:text-primary shadow-sm transition-all text-lg font-black">+</button>
+                    </div>
+                </div>
+            </td>
+            <td className="px-6 py-4 text-right hidden md:table-cell">
+                <button onClick={() => onRemove(item.equipamento_id, item.secao)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 ml-auto">
+                    <Icons.Close size={20} />
+                </button>
+            </td>
+        </tr>
+    );
+});
 
 interface ItemBudget {
     equipamento_id: number;
@@ -157,9 +193,13 @@ const Orcamentos: React.FC = () => {
         setShowResults(false);
     };
 
-    const updateQtd = (id: number, secao: string, val: number) => {
-        setItems(items.map(i => (i.equipamento_id === id && i.secao === secao) ? { ...i, quantidade: Math.max(1, val) } : i));
-    };
+    const updateQtd = useCallback((id: number, secao: string, val: number) => {
+        setItems(prev => prev.map(i => (i.equipamento_id === id && i.secao === secao) ? { ...i, quantidade: Math.max(1, val) } : i));
+    }, []);
+
+    const removeItem = useCallback((id: number, secao: string) => {
+        setItems(prev => prev.filter(i => !(i.equipamento_id === id && i.secao === secao)));
+    }, []);
 
     const submitMutation = useMutation({
         mutationFn: (payload: any) => api.post('/orcamentos.php', payload),
@@ -246,7 +286,7 @@ const Orcamentos: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 rounded-[24px] md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden overflow-x-auto">
+                <div className="hidden md:block bg-white dark:bg-slate-900 rounded-[24px] md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
@@ -323,6 +363,57 @@ const Orcamentos: React.FC = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="md:hidden space-y-4">
+                    {orcamentos?.map((orc: Orcamento) => (
+                        <div key={orc.id} className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(orc.created_at), 'dd/MM/yyyy')}</p>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white uppercase mt-0.5">
+                                        {orc.numero_sequencial ? `ORC-${new Date(orc.data_inicio).getFullYear()}-${String(orc.numero_sequencial).padStart(3, '0')}` : `#${orc.id}`}
+                                    </p>
+                                </div>
+                                <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${orc.status === 'Aprovado' ? 'bg-green-100 text-green-600 dark:bg-green-900/20' :
+                                    orc.status === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
+                                        orc.status === 'Aguardando Aprovação' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20' :
+                                            'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
+                                    }`}>
+                                    {orc.status}
+                                </span>
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Cliente</p>
+                                <p className="text-sm font-black text-primary uppercase">{orc.cliente_nome}</p>
+                            </div>
+                            <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Período</p>
+                                    <p className="text-xs font-bold dark:text-slate-300">{format(new Date(orc.data_inicio), 'dd/MM')} até {format(new Date(orc.data_fim), 'dd/MM')}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Valor Total</p>
+                                    <p className="text-base font-black text-slate-900 dark:text-white">R$ {parseFloat(orc.valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-1">
+                                <button onClick={() => handleEdit(orc)} className="flex-1 py-4 bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 min-h-[44px]">
+                                    <Icons.Settings size={16} /> Editar
+                                </button>
+                                <button onClick={() => window.open(`/proposta/${orc.id}`, '_blank')} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-black text-[10px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 min-h-[44px]">
+                                    <Icons.Printer size={16} /> PDF
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    {orcamentos?.length === 0 && (
+                        <div className="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[24px]">
+                            <Icons.Orcamentos className="mx-auto text-slate-200 dark:text-slate-700" size={48} />
+                            <p className="text-slate-400 font-bold mt-4 uppercase text-[10px] tracking-widest">Nenhum orçamento encontrado</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -440,13 +531,13 @@ const Orcamentos: React.FC = () => {
                         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                             <button
                                 onClick={() => setTipoCobranca('DIARIA')}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${tipoCobranca === 'DIARIA' ? 'bg-primary text-white shadow-sm' : 'text-slate-400'}`}
+                                className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${tipoCobranca === 'DIARIA' ? 'bg-primary text-white shadow-sm' : 'text-slate-400'}`}
                             >
                                 DIÁRIA
                             </button>
                             <button
                                 onClick={() => setTipoCobranca('EVENTO')}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${tipoCobranca === 'EVENTO' ? 'bg-primary text-white shadow-sm' : 'text-slate-400'}`}
+                                className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${tipoCobranca === 'EVENTO' ? 'bg-primary text-white shadow-sm' : 'text-slate-400'}`}
                             >
                                 EVENTO
                             </button>
@@ -486,7 +577,7 @@ const Orcamentos: React.FC = () => {
                 </div>
 
                 {/* Sections Management */}
-                <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex flex-nowrap overflow-x-auto hide-scrollbar snap-x gap-2 items-center pb-2 -mx-4 px-4 md:mx-0 md:px-0">
                     {sections.map(s => (
                         <button
                             key={s}
@@ -562,26 +653,10 @@ const Orcamentos: React.FC = () => {
                                     {items.filter(i => i.secao === secao).length} itens
                                 </span>
                             </div>
-                            <table className="w-full text-left">
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            <table className="w-full text-left md:table block">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 md:table-row-group block">
                                     {items.filter(i => i.secao === secao).map(item => (
-                                        <tr key={`${item.equipamento_id}-${item.secao}`} className="hover:bg-slate-50/20 dark:hover:bg-slate-800/10 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase">{item.nome}</p>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button onClick={() => updateQtd(item.equipamento_id, item.secao, item.quantidade - 1)} className="size-6 rounded border dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-primary">-</button>
-                                                    <span className="text-xs font-black dark:text-white w-4 text-center">{item.quantidade}</span>
-                                                    <button onClick={() => updateQtd(item.equipamento_id, item.secao, item.quantidade + 1)} className="size-6 rounded border dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-primary">+</button>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <button onClick={() => setItems(items.filter(i => !(i.equipamento_id === item.equipamento_id && i.secao === item.secao)))} className="p-1 text-slate-300 hover:text-primary transition-colors">
-                                                    {Icons.Close && <Icons.Close size={16} />}
-                                                </button>
-                                            </td>
-                                        </tr>
+                                        <BudgetRow key={`${item.equipamento_id}-${item.secao}`} item={item} onUpdateQtd={updateQtd} onRemove={removeItem} />
                                     ))}
                                 </tbody>
                             </table>
@@ -597,59 +672,85 @@ const Orcamentos: React.FC = () => {
             </div>
 
             {/* Sticky Summary Panel */}
-            <div className="w-full lg:w-80 shrink-0 px-4 lg:px-0">
-                <div className="lg:sticky lg:top-24 space-y-4">
-                    <div className="bg-black p-6 md:p-8 rounded-[2rem] text-white shadow-xl shadow-black/20 border border-white/10">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Valor Investimento</p>
-                        <h3 className="text-3xl md:text-4xl font-black mt-2 tracking-tighter">
-                            <span className="text-xl font-bold text-primary mr-1">R$</span>
-                            {calculateTotals().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </h3>
-                        <div className="mt-8 space-y-3">
-                            {(!selectedId || orcamentos?.find((o: any) => o.id === selectedId)?.status === 'Aguardando Aprovação') && (
+            <div className="w-full lg:w-80 shrink-0 px-0 lg:px-0">
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] lg:static lg:bg-transparent lg:border-none lg:shadow-none lg:p-0 lg:z-auto">
+                    <div className="lg:sticky lg:top-24 space-y-4 max-w-7xl mx-auto flex flex-col lg:block">
+                        <div className="bg-black p-4 md:p-6 lg:p-8 rounded-2xl lg:rounded-[2rem] text-white shadow-xl shadow-black/20 border border-white/10 flex flex-row lg:flex-col items-center lg:items-start justify-between lg:justify-start gap-4 lg:gap-0">
+                            <div>
+                                <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-primary">Investimento</p>
+                                <h3 className="text-xl md:text-2xl lg:text-4xl font-black mt-1 lg:mt-2 tracking-tighter">
+                                    <span className="text-base lg:text-xl font-bold text-primary mr-1">R$</span>
+                                    {calculateTotals().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </h3>
+                            </div>
+                            <div className="flex flex-row lg:flex-col gap-2 lg:gap-3 lg:mt-8 w-full lg:w-auto">
+                                {(!selectedId || orcamentos?.find((o: any) => o.id === selectedId)?.status === 'Aguardando Aprovação') && (
+                                    <button
+                                        onClick={() => handleAction('approve')}
+                                        className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-emerald-600 text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                    >
+                                        <span className="hidden lg:inline">Aprovar Proposta</span>
+                                        <span className="lg:hidden">Aprovar</span>
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => handleAction('approve')}
-                                    className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-emerald-600/20"
+                                    onClick={() => handleAction('save')}
+                                    className="flex-1 lg:w-full min-h-[44px] py-3 lg:py-4 bg-primary text-white rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
                                 >
-                                    Aprovar Proposta
+                                    {selectedId ? (
+                                        <><span className="hidden lg:inline">Salvar Alterações</span><span className="lg:hidden">Salvar</span></>
+                                    ) : (
+                                        <><span className="hidden lg:inline">Gerar para Aprovação</span><span className="lg:hidden">Gerar</span></>
+                                    )}
                                 </button>
-                            )}
-                            <button
-                                onClick={() => handleAction('save')}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20"
-                            >
-                                {selectedId ? 'Salvar Alterações' : 'Gerar para Aprovação'}
-                            </button>
-                            <button
-                                onClick={() => setView('list')}
-                                className="w-full py-4 bg-transparent text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:text-white transition-all"
-                            >
-                                Voltar para Lista
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Timeline de Status */}
-                    {selectedId && history.length > 0 && (
-                        <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Histórico de Status</p>
-                            <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
-                                {history.map((h, idx) => (
-                                    <div key={h.id} className="relative pl-8">
-                                        <div className={`absolute left-0 top-1 size-6 rounded-full border-4 border-white dark:border-slate-900 z-10 ${idx === 0 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
-                                        <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase">{h.status_novo}</p>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase">{format(new Date(h.data_mudanca), 'dd/MM/yyyy HH:mm')}</p>
-                                    </div>
-                                ))}
+                                <button
+                                    onClick={() => setView('list')}
+                                    className="hidden lg:block w-full py-4 bg-transparent text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:text-white transition-all"
+                                >
+                                    Voltar para Lista
+                                </button>
                             </div>
                         </div>
-                    )}
+
+                        {/* Timeline de Status - Desktop */}
+                        {selectedId && history.length > 0 && (
+                            <div className="hidden lg:block bg-white dark:bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Histórico de Status</p>
+                                <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
+                                    {history.map((h, idx) => (
+                                        <div key={h.id} className="relative pl-8">
+                                            <div className={`absolute left-0 top-1 size-6 rounded-full border-4 border-white dark:border-slate-900 z-10 ${idx === 0 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                                            <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase">{h.status_novo}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">{format(new Date(h.data_mudanca), 'dd/MM/yyyy HH:mm')}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                {/* Histórico Mobile (Acima da Action Bar) */}
+                {selectedId && history.length > 0 && (
+                    <div className="lg:hidden bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm mt-6 mb-8">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Histórico de Status</p>
+                        <div className="space-y-4 relative before:absolute before:left-2 before:top-1 before:bottom-1 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800 ml-1">
+                            {history.map((h, idx) => (
+                                <div key={h.id} className="relative pl-6">
+                                    <div className={`absolute -left-1.5 top-0.5 size-4 rounded-full border-2 border-white dark:border-slate-900 z-10 ${idx === 0 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                                    <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase leading-none">{h.status_novo}</p>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">{format(new Date(h.data_mudanca), 'dd/MM/yyyy HH:mm')}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
-            {/* Quick-Add Client Modal */}
+            {/* Quick-Add Client Modal (Bottom Sheet on Mobile) */}
             {isClientModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 p-8 space-y-6">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-[32px] md:rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 space-y-6 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-300">
+                        <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto md:hidden mb-2"></div>
                         <div>
                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Cadastro Rápido</h3>
                             <p className="text-[10px] font-black text-primary uppercase tracking-widest">Adicione o cliente sem sair do orçamento</p>
@@ -657,7 +758,7 @@ const Orcamentos: React.FC = () => {
 
                         {clientErrorMsg && (
                             <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
-                                <div className="size-8 rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
+                                <div className="size-8 min-w-[32px] min-h-[32px] rounded-xl bg-red-500 flex items-center justify-center text-white shrink-0">
                                     <Icons.Close size={16} />
                                 </div>
                                 <p className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-tight">{clientErrorMsg}</p>
@@ -666,25 +767,25 @@ const Orcamentos: React.FC = () => {
                         <form onSubmit={handleQuickClientSubmit} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase">Nome / Razão Social</label>
-                                <input required className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-12" value={quickClientForm.nome} onChange={e => setQuickClientForm({ ...quickClientForm, nome: e.target.value })} />
+                                <input required className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-[44px]" value={quickClientForm.nome} onChange={e => setQuickClientForm({ ...quickClientForm, nome: e.target.value })} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase">CPF / CNPJ</label>
-                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-12" value={quickClientForm.cpf_cnpj} onChange={e => setQuickClientForm({ ...quickClientForm, cpf_cnpj: e.target.value })} />
+                                    <input inputMode="numeric" pattern="[0-9]*" className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-[44px]" value={quickClientForm.cpf_cnpj} onChange={e => setQuickClientForm({ ...quickClientForm, cpf_cnpj: e.target.value })} />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase">WhatsApp</label>
-                                    <input className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-12" value={quickClientForm.telefone} onChange={e => setQuickClientForm({ ...quickClientForm, telefone: e.target.value })} />
+                                    <input type="tel" inputMode="tel" className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-[44px]" value={quickClientForm.telefone} onChange={e => setQuickClientForm({ ...quickClientForm, telefone: e.target.value })} />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase">E-mail</label>
-                                <input type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-12" value={quickClientForm.email} onChange={e => setQuickClientForm({ ...quickClientForm, email: e.target.value })} />
+                                <input type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-transparent rounded-xl text-sm font-bold h-[44px]" value={quickClientForm.email} onChange={e => setQuickClientForm({ ...quickClientForm, email: e.target.value })} />
                             </div>
-                            <div className="pt-4 flex gap-3">
-                                <button type="button" onClick={() => setIsClientModalOpen(false)} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest">Cancelar</button>
-                                <button type="submit" className="flex-2 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">Cadastrar Cliente</button>
+                            <div className="pt-4 flex gap-3 pb-6 md:pb-0">
+                                <button type="button" onClick={() => setIsClientModalOpen(false)} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black uppercase text-[10px] tracking-widest min-h-[44px]">Cancelar</button>
+                                <button type="submit" className="flex-2 w-2/3 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 min-h-[44px]">Cadastrar Cliente</button>
                             </div>
                         </form>
                     </div>

@@ -14,6 +14,7 @@ const Layout: React.FC = () => {
     });
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -21,6 +22,7 @@ const Layout: React.FC = () => {
                 setIsSidebarOpen(false);
             } else {
                 setIsSidebarOpen(true);
+                setIsMobileSearchOpen(false);
             }
         };
         window.addEventListener('resize', handleResize);
@@ -170,16 +172,38 @@ const Layout: React.FC = () => {
             )}
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
                 {/* Header */}
-                <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 lg:px-8 shrink-0">
-                    <div className="flex items-center gap-4 flex-1">
+                <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between px-4 lg:px-8 shrink-0 relative transition-all duration-200">
+
+                    {/* Expanded Mobile Search Overlay */}
+                    {isMobileSearchOpen && (
+                        <div className="absolute inset-0 z-20 bg-white dark:bg-slate-900 flex items-center px-4 animate-in fade-in slide-in-from-top-2 duration-200 gap-3">
+                            <button
+                                onClick={() => setIsMobileSearchOpen(false)}
+                                className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                            >
+                                <Icons.Close size={20} />
+                            </button>
+                            <div className="relative flex-1">
+                                <Icons.Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    autoFocus
+                                    className="w-full pl-10 pr-4 py-2 h-[44px] bg-slate-50 dark:bg-slate-800 border-transparent focus:border-primary border rounded-xl focus:ring-0 text-sm transition-all focus:bg-white dark:focus:bg-slate-700 dark:text-white"
+                                    placeholder="Busca Omnibox..."
+                                    type="text"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2 md:gap-4 flex-1">
                         {/* Mobile Menu Toggle */}
                         <button
                             onClick={() => setIsMobileMenuOpen(true)}
-                            className="lg:hidden p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                            className="lg:hidden p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
-                            <Icons.Menu size={20} />
+                            <Icons.Menu size={24} />
                         </button>
 
                         {/* Desktop Sidebar Toggle */}
@@ -191,9 +215,9 @@ const Layout: React.FC = () => {
                         </button>
 
                         {(window.innerWidth <= 1024 || !isSidebarOpen) && (
-                            <div className="size-8 overflow-hidden rounded-lg bg-white flex items-center justify-center shadow-sm border border-slate-200">
+                            <div className="size-8 md:size-10 overflow-hidden rounded-lg bg-white flex items-center justify-center shadow-sm border border-slate-200 shrink-0">
                                 {config?.logo_path ? (
-                                    <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain" />
+                                    <img src={config.logo_path} alt="Logo" className="w-[80%] h-[80%] object-contain" />
                                 ) : (
                                     <Icons.Dashboard size={18} className="text-primary" />
                                 )}
@@ -209,18 +233,26 @@ const Layout: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 lg:gap-4">
-                        <button className="relative size-10 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent transition-colors">
-                            <Icons.Notif size={20} />
-                            <span className="absolute top-2 right-2 size-2 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                    <div className="flex items-center gap-1 lg:gap-4">
+                        {/* Mobile Search Icon Toggle */}
+                        <button
+                            onClick={() => setIsMobileSearchOpen(true)}
+                            className="sm:hidden relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            <Icons.Search size={22} />
+                        </button>
+
+                        <button className="relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent transition-colors">
+                            <Icons.Notif size={22} />
+                            <span className="absolute top-2 right-2 md:top-2.5 md:right-2.5 size-2 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
                         </button>
                         <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-800 lg:mx-1"></div>
-                        <div className="flex items-center gap-3 pl-2">
+                        <div className="flex items-center gap-3 pl-1 md:pl-2">
                             <div className="hidden sm:flex flex-col items-end">
                                 <p className="text-xs font-bold leading-none">{user?.nome || 'Usuário'}</p>
                                 <p className="text-[10px] text-green-500 font-bold uppercase mt-0.5">{user?.papel_nome || 'Acesso'}</p>
                             </div>
-                            <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
                                 {user?.nome?.substring(0, 2).toUpperCase() || 'U'}
                             </div>
                         </div>

@@ -129,15 +129,15 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
-                <div className={`grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800 overflow-x-auto ${viewMode === 'month' ? 'md:grid-rows-auto md:divide-y' : ''}`}>
+                <div className={`flex flex-nowrap overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-7 md:block hide-scrollbar divide-x divide-slate-100 dark:divide-slate-800 ${viewMode === 'month' ? 'md:grid-rows-auto md:divide-y' : ''}`}>
                     {displayDays.map((date, idx) => {
                         const dayEvents = calendario?.filter((e: any) => isSameDay(new Date(e.data_inicio), date));
                         const isToday = isSameDay(date, today);
                         const isCurrentMonth = isSameDay(startOfMonth(date), startOfMonth(viewDate));
 
                         return (
-                            <div key={idx} className={`p-4 md:p-6 md:min-h-[180px] space-y-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors ${isToday ? 'bg-primary/[0.03]' : ''} ${!isCurrentMonth && viewMode === 'month' ? 'opacity-40 grayscale' : ''}`}>
-                                <div className="flex md:flex-col items-center gap-3 md:gap-1 border-b md:border-none border-slate-50 dark:border-slate-800 pb-2 md:pb-0">
+                            <div key={idx} className={`min-w-[85vw] sm:min-w-[15rem] md:min-w-0 shrink-0 snap-center p-5 md:p-6 min-h-[240px] md:min-h-[180px] space-y-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors border-r border-slate-100 dark:border-slate-800 ${isToday ? 'bg-primary/[0.03]' : ''} ${!isCurrentMonth && viewMode === 'month' ? 'opacity-40 grayscale' : ''}`}>
+                                <div className="flex justify-between md:justify-start md:flex-col items-center gap-3 md:gap-1 border-b md:border-none border-slate-50 dark:border-slate-800 pb-3 md:pb-0">
                                     <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? 'text-primary' : 'text-slate-400'}`}>
                                         {format(date, 'eee', { locale: ptBR })}
                                     </span>
@@ -216,7 +216,7 @@ const Dashboard: React.FC = () => {
                     <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                         <h3 className="font-bold text-slate-900 dark:text-white italic uppercase tracking-wider text-sm">Top 10 Equipamentos Populares</h3>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-slate-50/50 dark:bg-slate-800/30">
@@ -246,6 +246,29 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                    {/* Mobile List View */}
+                    <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        {usoEquip?.map((item: any, idx: number) => (
+                            <div key={idx} className="p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors flex items-center justify-between group">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-black text-slate-300 dark:text-slate-700 w-4">#{idx + 1}</span>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{item.nome}</p>
+                                        <p className="text-[10px] text-slate-500 font-medium tracking-tight mt-0.5">Locações: <span className="font-bold text-slate-700 dark:text-slate-300">{item.total_locacoes}</span></p>
+                                    </div>
+                                </div>
+                                <div className="text-right flex flex-col items-end justify-center">
+                                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Total</p>
+                                    <span className="px-2 py-1 rounded bg-primary/10 text-primary text-xs font-black shadow-sm">
+                                        {item.qtd_total}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                        {(!usoEquip || usoEquip.length === 0) && (
+                            <div className="p-8 text-center text-sm font-bold text-slate-400">Nenhum dado disponível</div>
+                        )}
                     </div>
                 </div>
             </div>
