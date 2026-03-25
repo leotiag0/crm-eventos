@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { Icons } from './Icons';
 import { useAuth } from '../context/AuthContext';
+import { Omnibox } from './Omnibox';
+import { NotificationsMenu } from './NotificationsMenu';
 
 const Layout: React.FC = () => {
     const { user, logout, hasPermission } = useAuth();
@@ -186,15 +188,7 @@ const Layout: React.FC = () => {
                             >
                                 <Icons.Close size={20} />
                             </button>
-                            <div className="relative flex-1">
-                                <Icons.Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <input
-                                    autoFocus
-                                    className="w-full pl-10 pr-4 py-2 h-[44px] bg-slate-50 dark:bg-slate-800 border-transparent focus:border-primary border rounded-xl focus:ring-0 text-sm transition-all focus:bg-white dark:focus:bg-slate-700 dark:text-white"
-                                    placeholder="Busca Omnibox..."
-                                    type="text"
-                                />
-                            </div>
+                            <Omnibox isMobile={true} onClose={() => setIsMobileSearchOpen(false)} />
                         </div>
                     )}
 
@@ -225,12 +219,7 @@ const Layout: React.FC = () => {
                             </div>
                         )}
                         <div className="relative max-w-md w-full hidden sm:block">
-                            <Icons.Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-transparent focus:border-primary border rounded-xl focus:ring-0 text-sm transition-all focus:bg-white dark:focus:bg-slate-700 dark:text-white"
-                                placeholder="Busca Omnibox..."
-                                type="text"
-                            />
+                            <Omnibox />
                         </div>
                     </div>
 
@@ -243,10 +232,8 @@ const Layout: React.FC = () => {
                             <Icons.Search size={22} />
                         </button>
 
-                        <button className="relative min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent transition-colors">
-                            <Icons.Notif size={22} />
-                            <span className="absolute top-2 right-2 md:top-2.5 md:right-2.5 size-2 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
-                        </button>
+                        <NotificationsMenu />
+
                         <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-800 lg:mx-1"></div>
                         <div className="flex items-center gap-3 pl-1 md:pl-2">
                             <div className="hidden sm:flex flex-col items-end">
