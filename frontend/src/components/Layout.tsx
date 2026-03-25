@@ -74,6 +74,7 @@ const Layout: React.FC = () => {
         { name: 'Equipamentos', path: '/equipamentos', icon: Icons.Equipamentos, modulo: 'equipamentos' },
         { name: 'Orçamentos', path: '/orcamentos', icon: Icons.Orcamentos, modulo: 'orcamentos' },
         { name: 'Logística', path: '/logistica', icon: Icons.Logistica, modulo: 'logistica' },
+        { name: 'Relatórios', path: '/relatorios', icon: Icons.Relatorios, modulo: 'orcamentos' },
         { name: 'Usuários', path: '/usuarios', icon: Icons.Clientes, modulo: 'usuarios' },
         { name: 'Configurações', path: '/configuracoes', icon: Icons.Settings, modulo: 'configuracoes' },
     ];

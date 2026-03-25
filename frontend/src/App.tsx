@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Orcamentos from './pages/Orcamentos';
@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Usuarios from './pages/Usuarios';
 import Configuracoes from './pages/Configuracoes';
 import Romaneio from './pages/Romaneio';
+import Relatorios from './pages/Relatorios';
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ function App() {
             <Route path="equipamentos" element={<ProtectedRoute modulo="equipamentos"><Equipamentos /></ProtectedRoute>} />
             <Route path="orcamentos" element={<ProtectedRoute modulo="orcamentos"><Orcamentos /></ProtectedRoute>} />
             <Route path="logistica" element={<ProtectedRoute modulo="logistica"><Logistica /></ProtectedRoute>} />
+            <Route path="relatorios" element={<ProtectedRoute modulo="orcamentos"><Relatorios /></ProtectedRoute>} />
             <Route path="usuarios" element={<ProtectedRoute modulo="usuarios"><Usuarios /></ProtectedRoute>} />
             <Route path="configuracoes" element={<ProtectedRoute modulo="configuracoes"><Configuracoes /></ProtectedRoute>} />
           </Route>

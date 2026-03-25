@@ -18,7 +18,8 @@ import {
     Bell,
     Printer,
     Music,
-    LogOut
+    LogOut,
+    BarChart3
 } from 'lucide-react';
 
 export const Icons = {
@@ -42,5 +43,6 @@ export const Icons = {
     Notif: Bell,
     Printer: Printer,
     Logo: Music,
-    Logout: LogOut
+    Logout: LogOut,
+    Relatorios: BarChart3
 };

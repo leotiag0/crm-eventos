@@ -94,6 +94,10 @@ const Orcamentos: React.FC = () => {
     const [showResults, setShowResults] = useState(false);
     const searchRef = useRef<HTMLDivElement>(null);
 
+    // List Filters
+    const [listSearch, setListSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('Todos');
+
     // Queries
     const { data: orcamentos } = useQuery({
         queryKey: ['orcamentos-list'],
@@ -266,6 +270,19 @@ const Orcamentos: React.FC = () => {
         }
     };
 
+    // Filtering Logic for List View
+    const filteredOrcamentos = orcamentos?.filter((orc: Orcamento) => {
+        const termo = listSearch.toLowerCase();
+        const matchSearch = orc.cliente_nome.toLowerCase().includes(termo) ||
+            (orc.nome_evento && orc.nome_evento.toLowerCase().includes(termo)) ||
+            String(orc.id).includes(termo) ||
+            (orc.numero_sequencial && String(orc.numero_sequencial).includes(termo));
+
+        const matchStatus = statusFilter === 'Todos' || orc.status === statusFilter;
+
+        return matchSearch && matchStatus;
+    });
+
     if (view === 'list') {
         return (
             <div className="space-y-6 animate-in fade-in duration-500 text-left px-4 md:px-0">
@@ -286,6 +303,32 @@ const Orcamentos: React.FC = () => {
                     </button>
                 </div>
 
+                {/* Smart Search Bar & Filters */}
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="relative flex-1 group">
+                        {Icons.Search && <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />}
+                        <input
+                            type="text"
+                            placeholder="Buscar por cliente, evento ou ref..."
+                            className="w-full pl-12 pr-4 py-3 min-h-[44px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold focus:border-primary focus:ring-0 dark:text-white transition-all shadow-sm"
+                            value={listSearch}
+                            onChange={(e) => setListSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex overflow-x-auto hide-scrollbar snap-x gap-2 flex-nowrap pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
+                        {['Todos', 'Aguardando Aprovação', 'Aprovado', 'Finalizado', 'Cancelado'].map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                className={`px-4 min-h-[44px] md:min-h-0 py-2 shrink-0 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${statusFilter === status ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                            >
+                                {status === 'Finalizado' && Icons.Success ? <span className="flex items-center gap-1.5"><Icons.Success size={14} /> {status}</span> : status}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Desktop Table View */}
                 <div className="hidden md:block bg-white dark:bg-slate-900 rounded-[24px] md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
@@ -299,7 +342,7 @@ const Orcamentos: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {orcamentos?.map((orc: Orcamento) => (
+                            {filteredOrcamentos?.map((orc: Orcamento) => (
                                 <tr key={orc.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                     <td className="px-6 py-4">
                                         <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">
@@ -349,12 +392,12 @@ const Orcamentos: React.FC = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {orcamentos?.length === 0 && (
+                            {filteredOrcamentos?.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="py-20 text-center">
                                         <div className="flex flex-col items-center gap-4">
                                             <div className="size-16 rounded-3xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-200">
-                                                <Icons.Orcamentos size={32} />
+                                                {Icons.Search ? <Icons.Search size={32} /> : <Icons.Orcamentos size={32} />}
                                             </div>
                                             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Nenhum orçamento encontrado</p>
                                         </div>
@@ -367,7 +410,7 @@ const Orcamentos: React.FC = () => {
 
                 {/* Mobile Cards View */}
                 <div className="md:hidden space-y-4">
-                    {orcamentos?.map((orc: Orcamento) => (
+                    {filteredOrcamentos?.map((orc: Orcamento) => (
                         <div key={orc.id} className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden">
                             <div className="flex justify-between items-start">
                                 <div>
@@ -408,10 +451,10 @@ const Orcamentos: React.FC = () => {
                             </div>
                         </div>
                     ))}
-                    {orcamentos?.length === 0 && (
+                    {filteredOrcamentos?.length === 0 && (
                         <div className="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[24px]">
-                            <Icons.Orcamentos className="mx-auto text-slate-200 dark:text-slate-700" size={48} />
-                            <p className="text-slate-400 font-bold mt-4 uppercase text-[10px] tracking-widest">Nenhum orçamento encontrado</p>
+                            {Icons.Search ? <Icons.Search className="mx-auto text-slate-200 dark:text-slate-700" size={48} /> : <Icons.Orcamentos className="mx-auto text-slate-200 dark:text-slate-700" size={48} />}
+                            <p className="text-slate-400 font-bold mt-4 uppercase text-[10px] tracking-widest">Nenhum resultado</p>
                         </div>
                     )}
                 </div>
