@@ -9,6 +9,12 @@ const Dashboard: React.FC = () => {
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
     const [viewDate, setViewDate] = useState(new Date());
 
+    const { data: config } = useQuery({
+        queryKey: ['configuracoes-publicas'],
+        queryFn: async () => (await api.get('/configuracoes.php')).data,
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: async () => {
@@ -67,7 +73,9 @@ const Dashboard: React.FC = () => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
             <div className="px-4 md:px-0">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase leading-tight">WA PRODUÇÕES - CRM</h1>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase leading-tight">
+                    {config?.nome_empresa ? `${config.nome_empresa} - CRM` : 'CRM EVENTOS'}
+                </h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-1 font-bold italic uppercase text-[9px] md:text-[10px] tracking-widest leading-relaxed">Painel Operacional Estratégico</p>
             </div>
 
