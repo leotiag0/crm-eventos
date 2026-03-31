@@ -27,12 +27,15 @@ switch ($method) {
         // Criar novo equipamento
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['nome']) && isset($data['valor_diaria'])) {
-            $stmt = $pdo->prepare("INSERT INTO equipamentos (nome, descricao, valor_diaria, estoque_total, fabricante, numero_serie, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO equipamentos (nome, descricao, valor_diaria, estoque_total, estoque_disponivel, estoque_manutencao, estoque_defeito, fabricante, numero_serie, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $data['nome'],
                 $data['descricao'] ?? null,
                 $data['valor_diaria'],
                 $data['estoque_total'] ?? 0,
+                $data['estoque_disponivel'] ?? 0,
+                $data['estoque_manutencao'] ?? 0,
+                $data['estoque_defeito'] ?? 0,
                 $data['fabricante'] ?? null,
                 $data['numero_serie'] ?? null,
                 $data['status'] ?? 'Disponível'
@@ -48,12 +51,15 @@ switch ($method) {
         // Atualizar equipamento
         $data = json_decode(file_get_contents("php://input"), true);
         if (isset($data['id']) && !empty($data['nome'])) {
-            $stmt = $pdo->prepare("UPDATE equipamentos SET nome = ?, descricao = ?, valor_diaria = ?, estoque_total = ?, fabricante = ?, numero_serie = ?, status = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE equipamentos SET nome = ?, descricao = ?, valor_diaria = ?, estoque_total = ?, estoque_disponivel = ?, estoque_manutencao = ?, estoque_defeito = ?, fabricante = ?, numero_serie = ?, status = ? WHERE id = ?");
             $stmt->execute([
                 $data['nome'],
                 $data['descricao'] ?? null,
                 $data['valor_diaria'],
                 $data['estoque_total'] ?? 0,
+                $data['estoque_disponivel'] ?? 0,
+                $data['estoque_manutencao'] ?? 0,
+                $data['estoque_defeito'] ?? 0,
                 $data['fabricante'] ?? null,
                 $data['numero_serie'] ?? null,
                 $data['status'] ?? 'Disponível',

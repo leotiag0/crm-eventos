@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS equipamentos (
     descricao TEXT,
     valor_diaria DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     estoque_total INT NOT NULL DEFAULT 0,
+    estoque_disponivel INT NOT NULL DEFAULT 0,
+    estoque_manutencao INT NOT NULL DEFAULT 0,
+    estoque_defeito INT NOT NULL DEFAULT 0,
     fabricante VARCHAR(255),
     numero_serie VARCHAR(100),
     status ENUM(
