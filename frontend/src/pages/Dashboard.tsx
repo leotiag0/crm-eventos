@@ -59,11 +59,15 @@ const Dashboard: React.FC = () => {
             end: addDays(startOfWeek(endOfMonth(viewDate), { weekStartsOn: 0 }), 6)
         });
 
+    const conversionRate = stats?.total_orcamentos ? ((stats?.orcamentos_fechados / stats?.total_orcamentos) * 100).toFixed(1) : '0.0';
+    const revenueApproved = Number(stats?.faturamento_total || 0);
+    const revenuePending = Number(stats?.faturamento_pendente || 0);
+
     const cards = [
-        { label: 'Equipamentos no Catálogo', value: stats?.total_equipamentos || 0, icon: Icons.Equipamentos, color: 'bg-blue-500' },
-        { label: 'Orçamentos Ativos', value: stats?.orcamentos_ativos || 0, icon: Icons.Orcamentos, color: 'bg-purple-500' },
-        { label: 'Total de Clientes', value: stats?.total_clientes || 0, icon: Icons.Clientes, color: 'bg-emerald-500' },
-        { label: 'Faturamento Total (R$)', value: Number(stats?.faturamento_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }), icon: Icons.Dashboard, color: 'bg-amber-500' },
+        { label: 'Faturamento Aprovado', value: `R$ ${revenueApproved.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, subtext: `+ R$ ${revenuePending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} pendentes`, icon: Icons.Dashboard, color: 'bg-emerald-500' },
+        { label: 'Taxa de Conversão', value: `${conversionRate}%`, subtext: `${stats?.orcamentos_fechados || 0} fechados / ${stats?.orcamentos_perdidos || 0} perdidos`, icon: Icons.Orcamentos, color: 'bg-blue-500' },
+        { label: 'Volume de Vendas', value: `${stats?.total_orcamentos || 0} Orçamentos`, subtext: `${stats?.orcamentos_ativos || 0} ativos no momento`, icon: Icons.List, color: 'bg-purple-500' },
+        { label: 'Base de Clientes', value: stats?.total_clientes || 0, subtext: `Catálogo: ${stats?.total_equipamentos || 0} equipamentos`, icon: Icons.Clientes, color: 'bg-amber-500' },
     ];
 
     if (statsLoading || usoLoading || alertasLoading || calendarioLoading) {
@@ -190,6 +194,7 @@ const Dashboard: React.FC = () => {
                         </div>
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{card.label}</p>
                         <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{card.value}</p>
+                        {card.subtext && <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">{card.subtext}</p>}
                     </div>
                 ))}
             </div>

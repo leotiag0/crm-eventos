@@ -182,7 +182,15 @@ const Logistica: React.FC = () => {
                                 <Icons.Chevron size={14} className="rotate-180" /> Voltar para lista
                             </button>
                             <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Painel de Movimentação: {selectedOrcamento.cliente_nome}</h3>
-                            <p className="text-xs text-slate-500 font-bold uppercase">{selectedOrcamento.nome_evento}</p>
+                            <p className="text-xs text-slate-500 font-bold uppercase mb-3">{selectedOrcamento.nome_evento}</p>
+                            <div className="flex gap-2">
+                                <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                                    <Icons.Logistica size={12} /> Saída: {new Date(selectedOrcamento.data_inicio).toLocaleDateString('pt-BR')}
+                                </span>
+                                <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                                    <Icons.CheckCircle size={12} /> Retorno: {new Date(selectedOrcamento.data_fim).toLocaleDateString('pt-BR')}
+                                </span>
+                            </div>
                         </div>
                         <button
                             className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
@@ -273,15 +281,23 @@ const Logistica: React.FC = () => {
                                                     onClick={() => handleSingleAction(r, 'ENTRADA', 'Disponível')}
                                                     disabled={(movingQuantities[r.id] || 0) <= 0}
                                                     className="size-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:scale-105 disabled:opacity-30 transition-all font-black text-[10px]"
-                                                    title="Entrada OK"
+                                                    title="Devolução OK"
                                                 >
                                                     OK
                                                 </button>
                                                 <button
-                                                    onClick={() => handleSingleAction(r, 'ENTRADA', 'Defeito Técnico')}
+                                                    onClick={() => handleSingleAction(r, 'ENTRADA', 'Manutenção')}
+                                                    disabled={(movingQuantities[r.id] || 0) <= 0}
+                                                    className="size-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 hover:scale-105 disabled:opacity-30 transition-all font-black text-[10px]"
+                                                    title="Manutenção Preventiva"
+                                                >
+                                                    MAN
+                                                </button>
+                                                <button
+                                                    onClick={() => handleSingleAction(r, 'ENTRADA', 'Defeito')}
                                                     disabled={(movingQuantities[r.id] || 0) <= 0}
                                                     className="size-11 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-500/20 hover:scale-105 disabled:opacity-30 transition-all"
-                                                    title="Entrada com Defeito"
+                                                    title="Retorno com Defeito"
                                                 >
                                                     <Icons.Error size={18} />
                                                 </button>
