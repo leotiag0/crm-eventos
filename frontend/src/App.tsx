@@ -20,10 +20,10 @@ const Relatorios = lazy(() => import('./pages/Relatorios'));
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children, modulo }: { children: React.ReactNode, modulo?: string }) => {
-  const { user, loading, hasPermission } = useAuth();
+  const { sessionUser, loading, hasPermission } = useAuth();
 
   if (loading) return null; // Or a loader
-  if (!user) return <Navigate to="/login" />;
+  if (!sessionUser) return <Navigate to="/login" />;
   if (modulo && !hasPermission(modulo)) return <Navigate to="/" />;
 
   return <>{children}</>;

@@ -6,7 +6,7 @@ import { Omnibox } from './Omnibox';
 import { NotificationsMenu } from './NotificationsMenu';
 
 const Layout: React.FC = () => {
-    const { user, config, logout, hasPermission } = useAuth();
+    const { sessionUser, config, logout, hasPermission } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -208,11 +208,11 @@ const Layout: React.FC = () => {
                         <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-800 lg:mx-1"></div>
                         <div className="flex items-center gap-3 pl-1 md:pl-2">
                             <div className="hidden sm:flex flex-col items-end">
-                                <p className="text-xs font-bold leading-none">{user?.nome || 'Usuário'}</p>
-                                <p className="text-[10px] text-green-500 font-bold uppercase mt-0.5">{user?.papel_nome || 'Acesso'}</p>
+                                <p className="text-xs font-bold leading-none">{sessionUser?.nome || 'Usuário'}</p>
+                                <p className="text-[10px] text-green-500 font-bold uppercase mt-0.5">{sessionUser?.papel_nome || 'Acesso'}</p>
                             </div>
                             <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                                {user?.nome?.substring(0, 2).toUpperCase() || 'U'}
+                                {sessionUser?.nome?.substring(0, 2).toUpperCase() || 'U'}
                             </div>
                         </div>
                     </div>

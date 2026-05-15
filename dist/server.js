@@ -77,9 +77,14 @@ app.use(express.static(staticPath, {
         // Hashed assets (Vite)
         if (path.includes('/assets/')) {
             res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (path.endsWith('index.html')) {
+            // NEVER cache index.html to ensure users always get the latest bundle hash
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
         } else {
-            // Outros arquivos na raiz (como logos, se não estiverem em assets)
-            res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 dias
+            // Other files (icons, robots.txt, etc)
+            res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour for minor root files
         }
     }
 }));

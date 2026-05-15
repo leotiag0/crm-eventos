@@ -18,7 +18,7 @@ interface Config {
 }
 
 interface AuthContextType {
-    user: User | null;
+    sessionUser: User | null;
     config: Config | null;
     loading: boolean;
     login: (email: string, senha: string) => Promise<void>;
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user: authUser, config, loading, login, logout, hasPermission }}>
+        <AuthContext.Provider value={{ sessionUser: authUser, config, loading, login, logout, hasPermission }}>
             {children}
         </AuthContext.Provider>
     );
