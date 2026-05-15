@@ -88,7 +88,7 @@ const Logistica: React.FC = () => {
                 equipamento_id: reserva.equipamento_id,
                 reserva_id: reserva.id,
                 quantidade: qty,
-                status_item: statusItem
+                status_retorno: statusItem
             }]
         });
     };

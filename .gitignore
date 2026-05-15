@@ -1,4 +1,8 @@
 # Backend sensitive data
+.env
+.env.local
+.env.development
+.env.production
 # (O config.php agora é seguro para o git pois usa Env::get)
 
 # PHP related

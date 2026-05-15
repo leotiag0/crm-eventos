@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { Icons } from './Icons';
@@ -10,6 +10,7 @@ import { NotificationsMenu } from './NotificationsMenu';
 const Layout: React.FC = () => {
     const { user, logout, hasPermission } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isDarkMode, setIsDarkMode] = useState(() => {
         return localStorage.getItem('theme') === 'dark' ||
             (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
