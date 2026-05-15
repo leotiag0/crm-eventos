@@ -29,7 +29,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [authUser, setAuthUser] = useState<User | null>(null);
     const [config, setConfig] = useState<Config | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 api.get('/configuracoes.php').catch(() => ({ data: null }))
             ]);
 
-            setUser(authRes.data.user);
+            setAuthUser(authRes.data.user);
             setConfig(configRes.data);
 
             // Apply theme globally if config exists
@@ -72,22 +72,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = async (email: string, senha: string) => {
         const response = await api.post('/auth.php?action=login', { email, senha });
-        setUser(response.data.user);
+        setAuthUser(response.data.user);
     };
 
     const logout = async () => {
         await api.post('/auth.php?action=logout');
-        setUser(null);
+        setAuthUser(null);
     };
 
     const hasPermission = (modulo: string) => {
-        if (!user) return false;
-        if (user.papel_slug === 'admin') return true;
-        return user.permissoes.includes(modulo);
+        if (!authUser) return false;
+        if (authUser.papel_slug === 'admin') return true;
+        return authUser.permissoes.includes(modulo);
     };
 
     return (
-        <AuthContext.Provider value={{ user, config, loading, login, logout, hasPermission }}>
+        <AuthContext.Provider value={{ user: authUser, config, loading, login, logout, hasPermission }}>
             {children}
         </AuthContext.Provider>
     );
