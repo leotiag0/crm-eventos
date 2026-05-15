@@ -8,10 +8,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const API_URL = process.env.API_URL || 'http://localhost:8000';
 
-// Serve a pasta de uploads diretamente (evita que imagens sumam no build/proxy)
-// Tenta servir tanto da raiz quanto de dentro de /dist para maior compatibilidade
-app.use('/api/uploads', express.static(path.join(__dirname, 'api/uploads')));
-app.use('/api/uploads', express.static(path.join(__dirname, 'dist/api/uploads')));
+// Configuração de cache para arquivos estáticos
+const setCustomCacheControl = (res, path) => {
+    // Arquivos do Vite (JS, CSS no diretório assets) têm hash e podem ter cache longo
+    if (path.includes('/assets/')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (path.match(/\.(jpg|jpeg|png|gif|ico|svg|woff2|webp)$/)) {
+        // Imagens e fontes em geral
+        res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 dias
+    }
+};
+
+// Serve a pasta de uploads diretamente
+app.use('/api/uploads', express.static(path.join(__dirname, 'api/uploads'), {
+    maxAge: '7d',
+    setHeaders: setCustomCacheControl
+}));
+app.use('/api/uploads', express.static(path.join(__dirname, 'dist/api/uploads'), {
+    maxAge: '7d',
+    setHeaders: setCustomCacheControl
+}));
 
 // Fallback para evitar que arquivos não encontrados em uploads caiam no proxy da API
 app.use('/api/uploads', (req, res) => {
@@ -50,8 +66,11 @@ const staticPath = fs.existsSync(path.join(__dirname, 'dist'))
 
 console.log(`[Static] Servindo arquivos de: ${staticPath}`);
 
-// Serve os arquivos estáticos
-app.use(express.static(staticPath));
+// Serve os arquivos estáticos com cache otimizado
+app.use(express.static(staticPath, {
+    maxAge: '1d', // Padrão de 1 dia para arquivos na raiz (como index.html, embora SPA use fallback)
+    setHeaders: setCustomCacheControl
+}));
 
 // Fallback para SPA (Single Page Application)
 app.get('*', (req, res) => {

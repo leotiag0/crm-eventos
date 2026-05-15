@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import { Icons } from '../components/Icons';
+import { loadHtml2Pdf } from '../utils/pdf';
 
 const Romaneio: React.FC = () => {
     const { id } = useParams();
@@ -44,24 +45,30 @@ const Romaneio: React.FC = () => {
         window.print();
     };
 
-    const handleDownloadPDF = () => {
+    const handleDownloadPDF = async () => {
         const element = document.getElementById('romaneio-content');
-        const html2pdf = (window as any).html2pdf;
-        if (!element || !html2pdf) return;
+        if (!element) return;
 
-        const date = new Date(orcamento.data_inicio).getFullYear();
-        const num = String(orcamento.numero_sequencial || orcamento.id).padStart(3, '0');
-        const filename = `Romaneio_${orcamento.cliente_nome}_${date}_${num}.pdf`;
+        try {
+            const html2pdf = await loadHtml2Pdf();
 
-        const opt = {
-            margin: 0,
-            filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
+            const date = new Date(orcamento.data_inicio).getFullYear();
+            const num = String(orcamento.numero_sequencial || orcamento.id).padStart(3, '0');
+            const filename = `Romaneio_${orcamento.cliente_nome}_${date}_${num}.pdf`;
 
-        html2pdf().set(opt).from(element).save();
+            const opt = {
+                margin: 0,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            alert('Não foi possível carregar a ferramenta de PDF. Verifique sua conexão.');
+        }
     };
 
     if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400 animate-pulse">GERANDO ROMANEIO...</div>;
