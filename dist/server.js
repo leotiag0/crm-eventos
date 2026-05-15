@@ -13,6 +13,11 @@ const API_URL = process.env.API_URL || 'http://localhost:8000';
 app.use('/api/uploads', express.static(path.join(__dirname, 'api/uploads')));
 app.use('/api/uploads', express.static(path.join(__dirname, 'dist/api/uploads')));
 
+// Fallback para evitar que arquivos não encontrados em uploads caiam no proxy da API
+app.use('/api/uploads', (req, res) => {
+    res.status(404).send('Arquivo não encontrado');
+});
+
 // Configura o proxy para o backend PHP
 app.use('/api', createProxyMiddleware({
     target: API_URL,
