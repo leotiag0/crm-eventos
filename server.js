@@ -21,12 +21,16 @@ const setCustomCacheControl = (res, path) => {
 
 // Serve a pasta de uploads diretamente
 app.use('/api/uploads', express.static(path.join(__dirname, 'api/uploads'), {
-    maxAge: '7d',
-    setHeaders: setCustomCacheControl
+    maxAge: '365d', // Aumentado para 365 dias
+    setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
 }));
 app.use('/api/uploads', express.static(path.join(__dirname, 'dist/api/uploads'), {
-    maxAge: '7d',
-    setHeaders: setCustomCacheControl
+    maxAge: '365d',
+    setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
 }));
 
 // Fallback para evitar que arquivos não encontrados em uploads caiam no proxy da API
@@ -68,8 +72,16 @@ console.log(`[Static] Servindo arquivos de: ${staticPath}`);
 
 // Serve os arquivos estáticos com cache otimizado
 app.use(express.static(staticPath, {
-    maxAge: '1d', // Padrão de 1 dia para arquivos na raiz (como index.html, embora SPA use fallback)
-    setHeaders: setCustomCacheControl
+    maxAge: '365d', // Mudado de 1d para 365d
+    setHeaders: (res, path) => {
+        // Hashed assets (Vite)
+        if (path.includes('/assets/')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+            // Outros arquivos na raiz (como logos, se não estiverem em assets)
+            res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 dias
+        }
+    }
 }));
 
 // Fallback para SPA (Single Page Application)

@@ -4,20 +4,13 @@ import api from '../api/client';
 import { Icons } from '../components/Icons';
 import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard: React.FC = () => {
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
     const [viewDate, setViewDate] = useState(new Date());
 
-    /**
-     * BUSCA DE DADOS (React Query)
-     * Centralizamos as chamadas de API para aproveitar o cache e estados de loading.
-     */
-    const { data: config } = useQuery({
-        queryKey: ['configuracoes-publicas'],
-        queryFn: async () => (await api.get('/configuracoes.php')).data,
-        staleTime: 1000 * 60 * 5 // 5 minutes
-    });
+    const { config } = useAuth();
 
     const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
         queryKey: ['dashboard-stats'],

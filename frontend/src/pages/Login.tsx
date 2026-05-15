@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Icons } from '../components/Icons';
 
@@ -10,36 +8,8 @@ const Login: React.FC = () => {
     const [senha, setSenha] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, config } = useAuth();
     const navigate = useNavigate();
-
-    const { data: config } = useQuery({
-        queryKey: ['configuracoes-publicas'],
-        queryFn: async () => (await api.get('/configuracoes.php')).data,
-        staleTime: 1000 * 60 * 5 // 5 minutes
-    });
-
-    useEffect(() => {
-        if (config?.cor_primaria) {
-            const root = window.document.documentElement;
-            root.style.setProperty('--color-primary', config.cor_primaria);
-            root.style.setProperty('--color-primary-dark', config.cor_secundaria || config.cor_primaria);
-        }
-
-        if (config?.nome_empresa) {
-            document.title = config.nome_empresa + " - Autenticação";
-        }
-
-        if (config?.logo_path) {
-            let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            link.href = config.logo_path;
-        }
-    }, [config]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

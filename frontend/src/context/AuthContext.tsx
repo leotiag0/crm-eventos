@@ -10,8 +10,16 @@ interface User {
     permissoes: string[];
 }
 
+interface Config {
+    nome_empresa?: string;
+    logo_path?: string;
+    cor_primaria?: string;
+    cor_secundaria?: string;
+}
+
 interface AuthContextType {
     user: User | null;
+    config: Config | null;
     loading: boolean;
     login: (email: string, senha: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -21,21 +29,42 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [config, setConfig] = useState<Config | null>(null);
 
     useEffect(() => {
-        checkAuth();
+        initializeApp();
     }, []);
 
-    const checkAuth = async () => {
+    const initializeApp = async () => {
         try {
-            const response = await api.get('/auth.php?action=check');
-            setUser(response.data.user);
+            // Fetch both in parallel to avoid sequential network chains
+            const [authRes, configRes] = await Promise.all([
+                api.get('/auth.php?action=check').catch(() => ({ data: { user: null } })),
+                api.get('/configuracoes.php').catch(() => ({ data: null }))
+            ]);
+
+            setUser(authRes.data.user);
+            setConfig(configRes.data);
+
+            // Apply theme globally if config exists
+            if (configRes.data) {
+                applyTheme(configRes.data);
+            }
         } catch (error) {
-            setUser(null);
+            console.error('Error initializing app:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const applyTheme = (data: Config) => {
+        const root = window.document.documentElement;
+        if (data.cor_primaria) {
+            root.style.setProperty('--color-primary', data.cor_primaria);
+            root.style.setProperty('--color-primary-dark', data.cor_secundaria || data.cor_primaria);
+        }
+        if (data.nome_empresa) {
+            document.title = data.nome_empresa + " - Sistema";
         }
     };
 
@@ -56,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, hasPermission }}>
+        <AuthContext.Provider value={{ user, config, loading, login, logout, hasPermission }}>
             {children}
         </AuthContext.Provider>
     );

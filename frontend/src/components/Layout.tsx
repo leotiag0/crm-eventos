@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import api from '../api/client';
 import { Icons } from './Icons';
 import { useAuth } from '../context/AuthContext';
 import { Omnibox } from './Omnibox';
 import { NotificationsMenu } from './NotificationsMenu';
 
 const Layout: React.FC = () => {
-    const { user, logout, hasPermission } = useAuth();
+    const { user, config, logout, hasPermission } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -32,36 +30,8 @@ const Layout: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const { data: config } = useQuery({
-        queryKey: ['configuracoes-publicas'],
-        queryFn: async () => (await api.get('/configuracoes.php')).data,
-        staleTime: 1000 * 60 * 5 // 5 minutes
-    });
-
     useEffect(() => {
         const root = window.document.documentElement;
-
-        // Dynamic Colors from Config
-        if (config?.cor_primaria) {
-            root.style.setProperty('--color-primary', config.cor_primaria);
-            // Use secondary if defined for dark variants or darker shade of primary
-            root.style.setProperty('--color-primary-dark', config.cor_secundaria || config.cor_primaria);
-        }
-
-        if (config?.nome_empresa) {
-            document.title = config.nome_empresa + " - Gestão Operacional";
-        }
-
-        if (config?.logo_path) {
-            let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.head.appendChild(link);
-            }
-            link.href = config.logo_path;
-        }
-
         if (isDarkMode) {
             root.classList.add('dark');
             localStorage.setItem('theme', 'dark');
@@ -69,7 +39,7 @@ const Layout: React.FC = () => {
             root.classList.remove('dark');
             localStorage.setItem('theme', 'light');
         }
-    }, [isDarkMode, config]);
+    }, [isDarkMode]);
 
     const navItems = [
         { name: 'Painel', path: '/', icon: Icons.Dashboard, modulo: 'dashboard' },

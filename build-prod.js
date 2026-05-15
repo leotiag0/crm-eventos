@@ -37,11 +37,37 @@ fs.copyFileSync('server.js', 'dist/server.js');
 console.log('Copiando package.json...');
 fs.copyFileSync('package.json', 'dist/package.json');
 
-// 4. Garante que o server.js dentro de dist aponte para os arquivos locais
-// No server.js original: app.use(express.static(path.join(__dirname, 'dist')));
-// Se ele estiver DENTRO de dist, deve ser dist/.. ou apenas '.'
-// Mas como a Hostinger achata a pasta 'dist' na raiz de deploy, o server.js 
-// voltará a estar no mesmo nível da pasta dist/ (que vira a raiz).
-// Portanto, mantemos a lógica ou ajustamos se necessário.
+// 4. Inline CSS in index.html for better performance (eliminates render-blocking request)
+console.log('Inlining CSS em index.html...');
+const indexPath = 'dist/index.html';
+if (fs.existsSync(indexPath)) {
+    let html = fs.readFileSync(indexPath, 'utf8');
+    
+    // Procura por tags <link rel="stylesheet" href="/assets/index-*.css">
+    const cssMatch = html.match(/<link rel="stylesheet" [^>]*href="\/assets\/(index-[^"]+\.css)"[^>]*>/);
+    
+    if (cssMatch) {
+        const cssFileName = cssMatch[1];
+        const cssPath = path.join('dist/assets', cssFileName);
+        
+        if (fs.existsSync(cssPath)) {
+            const cssContent = fs.readFileSync(cssPath, 'utf8');
+            console.log(`Inlining ${cssFileName} (${(cssContent.length / 1024).toFixed(2)} KB)...`);
+            
+            // Substitui a tag <link> pelo conteúdo <style>
+            html = html.replace(cssMatch[0], `<style>${cssContent}</style>`);
+            
+            // 5. Adiciona modulepreload para o JS principal (melhora LCP)
+            const jsMatch = html.match(/<script type="module" [^>]*src="\/assets\/(index-[^"]+\.js)"[^>]*>/);
+            if (jsMatch) {
+                const jsFileName = jsMatch[1];
+                const preloadTag = `<link rel="modulepreload" href="/assets/${jsFileName}">`;
+                html = html.replace('</title>', `</title>\n  ${preloadTag}`);
+            }
+
+            fs.writeFileSync(indexPath, html);
+        }
+    }
+}
 
 console.log('--- Consolidação concluída com sucesso! ---');
