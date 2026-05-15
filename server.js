@@ -9,7 +9,9 @@ const PORT = process.env.PORT || 3000;
 const API_URL = process.env.API_URL || 'http://localhost:8000';
 
 // Serve a pasta de uploads diretamente (evita que imagens sumam no build/proxy)
+// Tenta servir tanto da raiz quanto de dentro de /dist para maior compatibilidade
 app.use('/api/uploads', express.static(path.join(__dirname, 'api/uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'dist/api/uploads')));
 
 // Configura o proxy para o backend PHP
 app.use('/api', createProxyMiddleware({

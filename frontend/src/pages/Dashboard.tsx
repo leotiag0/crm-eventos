@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
                     <div key={idx} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
                         <div className="flex items-center justify-between mb-4">
                             <div className={`p-2.5 rounded-xl ${card.color} text-white shadow-lg shadow-inherit/20 group-hover:scale-110 transition-transform`}>
-                                <card.icon size={24} />
+                                {card.icon && <card.icon size={24} />}
                             </div>
                         </div>
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{card.label}</p>

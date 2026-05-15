@@ -12,6 +12,9 @@ class OrcamentoService
         $this->pdo = $pdo;
     }
 
+    /**
+     * Busca um orçamento pelo ID e carrega seus itens e histórico.
+     */
     public function getById($id)
     {
         $stmt = $this->pdo->prepare("
@@ -55,6 +58,10 @@ class OrcamentoService
         return $stmt->fetchAll();
     }
 
+    /**
+     * Processa um orçamento (salvar ou aprovar).
+     * Realiza validações de disponibilidade e validade de proposta.
+     */
     public function process($data)
     {
         $action = $data['action'] ?? 'save'; // 'save' ou 'approve'
@@ -141,6 +148,10 @@ class OrcamentoService
         }
     }
 
+    /**
+     * Valida se há equipamentos disponíveis para as datas selecionadas.
+     * Utiliza trava de SELECT FOR UPDATE para evitar conflitos de reserva simultâneos.
+     */
     private function validateAvailability($data, $excludeOrcamentoId = null)
     {
         foreach ($data['itens'] as $item) {

@@ -4,8 +4,10 @@
  */
 
 header("Content-Type: application/json; charset=UTF-8");
-require_once '../config/database.php';
-require_once '../config/middleware.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/middleware.php';
+
+checkAuth();
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -19,7 +21,10 @@ $type = $_GET['type'] ?? 'overview';
 
 switch ($type) {
     case 'overview':
-        // Métricas gerais
+        /**
+         * Resumo geral de KPIs (Indicadores Chave de Desempenho).
+         * Calcula faturamentos, volumes de orçamentos e taxas de conversão.
+         */
         $stats = [];
 
         $stats['total_clientes'] = $pdo->query("SELECT COUNT(*) FROM clientes")->fetchColumn();
@@ -36,7 +41,9 @@ switch ($type) {
         break;
 
     case 'uso_equipamentos':
-        // Ranking de equipamentos mais locados
+        /**
+         * Inteligência de Estoque: Ranking dos 10 equipamentos com maior ROI (volume de locação).
+         */
         $stmt = $pdo->query("
             SELECT e.nome, COUNT(i.id) as total_locacoes, SUM(i.quantidade) as qtd_total
             FROM equipamentos e
@@ -51,7 +58,9 @@ switch ($type) {
         break;
 
     case 'manutencao':
-        // Alertas de equipamentos que precisam de manutenção
+        /**
+         * Alertas de Manutenção: Identifica equipamentos com saldo físico em reparo ou defeito.
+         */
         $stmt = $pdo->query("
             SELECT id, nome, status, descricao, estoque_manutencao, estoque_defeito
             FROM equipamentos

@@ -12,6 +12,9 @@ class LogisticaService
         $this->pdo = $pdo;
     }
 
+    /**
+     * Lista eventos aprovados que iniciam ou terminam hoje.
+     */
     public function listToday()
     {
         $stmt = $this->pdo->query("
@@ -61,6 +64,10 @@ class LogisticaService
         return $stmt->fetchAll();
     }
 
+    /**
+     * Registra o Check-out (saída) de equipamentos para um orçamento.
+     * Decrementa fisicamente o saldo disponível do estoque principal.
+     */
     public function checkout($data)
     {
         $orcamentoId = $data['orcamento_id'] ?? null;
@@ -91,6 +98,11 @@ class LogisticaService
         }
     }
 
+    /**
+     * Registra o Check-in (retorno) de equipamentos de um evento.
+     * Dependendo da condição informada (OK, Manutenção ou Defeito),
+     * incrementa o saldo na coluna correspondente do banco de dados.
+     */
     public function checkin($data)
     {
         $orcamentoId = $data['orcamento_id'] ?? null;

@@ -19,7 +19,8 @@ import {
     Printer,
     Music,
     LogOut,
-    BarChart3
+    BarChart3,
+    List
 } from 'lucide-react';
 
 export const Icons = {
@@ -44,5 +45,6 @@ export const Icons = {
     Printer: Printer,
     Logo: Music,
     Logout: LogOut,
-    Relatorios: BarChart3
+    Relatorios: BarChart3,
+    List: List
 };
