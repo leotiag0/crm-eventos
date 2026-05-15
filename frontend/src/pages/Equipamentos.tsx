@@ -8,11 +8,13 @@ const Equipamentos: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
 
+    // Busca a lista completa de equipamentos com detalhes de estoque quádruplo
     const { data: equipamentos, isLoading } = useQuery({
         queryKey: ['equipamentos-list-full'],
         queryFn: async () => (await api.get('/equipamentos.php')).data,
     });
 
+    // Mutação para criação ou edição de equipamentos
     const mutation = useMutation({
         mutationFn: (data: any) => editingItem ? api.put('/equipamentos.php', data) : api.post('/equipamentos.php', data),
         onSuccess: () => {
@@ -27,6 +29,10 @@ const Equipamentos: React.FC = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['equipamentos-list-full'] }),
     });
 
+    /**
+     * Processa o envio do formulário de equipamento.
+     * Mapeia os quatro estados de estoque: Total, Disponível, Manutenção e Defeito.
+     */
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);

@@ -10,19 +10,20 @@ const Logistica: React.FC = () => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-    // Query: Orçamentos Aprovados para Logística
+    // Busca orçamentos aprovados que possuem pendência de saída ou entrada de equipamentos
     const { data: orcamentos, isLoading } = useQuery({
         queryKey: ['logistica-pendentes'],
         queryFn: async () => (await api.get('/logistica.php')).data,
     });
 
-    // Query: Itens de um orçamento específico (Reservas)
+    // Busca os itens (reservas) de um orçamento específico para controle de conferência
     const { data: reservas, refetch: refetchReservas } = useQuery({
         queryKey: ['logistica-reservas', selectedOrcamento?.id],
         queryFn: async () => (await api.get(`/logistica.php?orcamento_id=${selectedOrcamento.id}`)).data,
         enabled: !!selectedOrcamento,
     });
 
+    // Mutação para processar movimentações (check-out, check-in ou finalizar evento)
     const movementMutation = useMutation({
         mutationFn: (payload: any) => api.post('/logistica.php', payload),
         onSuccess: (res: any) => {
@@ -41,6 +42,9 @@ const Logistica: React.FC = () => {
         }
     });
 
+    /**
+     * Registra a saída (check-out) de múltiplos itens selecionados.
+     */
     const handleBatchCheckout = () => {
         const itens = Object.entries(movingQuantities)
             .filter(([_, qty]) => qty > 0)
@@ -59,6 +63,9 @@ const Logistica: React.FC = () => {
         });
     };
 
+    /**
+     * Finaliza o evento no sistema, removendo-o da listagem de logística ativa.
+     */
     const handleFinalizeEvent = () => {
         if (!confirm('Deseja realmente finalizar este evento? Isso encerrará a logística e ocultará a ordem do seu painel.')) return;
         movementMutation.mutate({
@@ -67,6 +74,9 @@ const Logistica: React.FC = () => {
         });
     };
 
+    /**
+     * Registra uma ação individual (saída ou entrada) com status específico (Ex: retorno com defeito).
+     */
     const handleSingleAction = (reserva: any, tipo: 'SAIDA' | 'ENTRADA', statusItem: string = 'Disponível') => {
         const qty = movingQuantities[reserva.id] || 0;
         if (qty <= 0) return alert('Informe a quantidade');

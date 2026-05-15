@@ -9,6 +9,10 @@ const Dashboard: React.FC = () => {
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
     const [viewDate, setViewDate] = useState(new Date());
 
+    /**
+     * BUSCA DE DADOS (React Query)
+     * Centralizamos as chamadas de API para aproveitar o cache e estados de loading.
+     */
     const { data: config } = useQuery({
         queryKey: ['configuracoes-publicas'],
         queryFn: async () => (await api.get('/configuracoes.php')).data,
@@ -83,7 +87,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-slate-500 dark:text-slate-400 mt-1 font-bold italic uppercase text-[9px] md:text-[10px] tracking-widest leading-relaxed">Painel Operacional Estratégico</p>
             </div>
 
-            {/* Weekly/Monthly Calendar Section */}
+            {/* SEÇÃO 1: Calendário Operacional (Semanal/Mensal) */}
             <div className="mx-4 md:mx-0 bg-white dark:bg-slate-900 rounded-[24px] md:rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div className="px-6 md:px-8 py-5 md:py-6 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-4">
@@ -183,7 +187,7 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Metrics Cards */}
+            {/* SEÇÃO 2: Cards de Métricas e KPIs Financeiros */}
             <div className="px-4 md:px-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {cards.map((card, idx) => (
                     <div key={idx} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow group">
@@ -200,7 +204,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Alerts Panel */}
+                {/* SEÇÃO 3: Painel de Alertas Operacionais (Manutenção Crítica) */}
                 <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
                         <Icons.Warning size={18} className="text-amber-500" />
@@ -224,7 +228,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Top Equipment Ranking */}
+                {/* SEÇÃO 4: Ranking de Equipamentos (Inteligência de Inventário) */}
                 <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
                         <h3 className="font-bold text-slate-900 dark:text-white italic uppercase tracking-wider text-sm">Top 10 Equipamentos Populares</h3>
