@@ -4,8 +4,10 @@
  */
 
 header("Content-Type: application/json; charset=UTF-8");
-require_once '../config/database.php';
-require_once '../config/middleware.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/middleware.php';
+
+checkAuth();
 
 $method = $_SERVER['REQUEST_METHOD'];
 

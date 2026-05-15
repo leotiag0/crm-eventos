@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 
-    const { data: stats, isLoading: statsLoading } = useQuery({
+    const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: async () => {
             const res = await api.get('/dashboards.php?type=overview');
@@ -28,7 +28,7 @@ const Dashboard: React.FC = () => {
         refetchInterval: 30000,
     });
 
-    const { data: usoEquip, isLoading: usoLoading } = useQuery({
+    const { data: usoEquip, isLoading: usoLoading, isError: usoError } = useQuery({
         queryKey: ['uso-equipamentos'],
         queryFn: async () => {
             const res = await api.get('/dashboards.php?type=uso_equipamentos');
@@ -36,7 +36,7 @@ const Dashboard: React.FC = () => {
         },
     });
 
-    const { data: alertas, isLoading: alertasLoading } = useQuery({
+    const { data: alertas, isLoading: alertasLoading, isError: alertasError } = useQuery({
         queryKey: ['alertas-manutencao'],
         queryFn: async () => {
             const res = await api.get('/dashboards.php?type=manutencao');
@@ -44,10 +44,9 @@ const Dashboard: React.FC = () => {
         },
     });
 
-    const { data: calendario, isLoading: calendarioLoading } = useQuery({
+    const { data: calendario, isLoading: calendarioLoading, isError: calendarioError } = useQuery({
         queryKey: ['calendario-full', format(viewDate, 'yyyy-MM')],
         queryFn: async () => {
-            // Fetching a bit more broad data might be better if we have month view
             const res = await api.get('/dashboards.php?type=calendario_semanal');
             return res.data;
         },
@@ -74,8 +73,35 @@ const Dashboard: React.FC = () => {
         { label: 'Base de Clientes', value: stats?.total_clientes || 0, subtext: `Catálogo: ${stats?.total_equipamentos || 0} equipamentos`, icon: Icons.Clientes, color: 'bg-amber-500' },
     ];
 
+    const isError = statsError || usoError || alertasError || calendarioError;
+
     if (statsLoading || usoLoading || alertasLoading || calendarioLoading) {
-        return <div className="p-8 text-center animate-pulse">Carregando painel de comando...</div>;
+        return (
+            <div className="min-h-[400px] flex flex-col items-center justify-center space-y-4 animate-pulse">
+                <Icons.Dashboard size={48} className="text-primary/20" />
+                <p className="text-xs font-black uppercase text-slate-400 tracking-[0.2em]">Sincronizando painel tático...</p>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="min-h-[400px] flex flex-col items-center justify-center space-y-6 text-center">
+                <div className="size-20 rounded-full bg-red-50 flex items-center justify-center text-red-500 shadow-inner">
+                    <Icons.Warning size={40} />
+                </div>
+                <div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Falha na Sincronização</h3>
+                    <p className="text-xs font-bold text-slate-500 mt-2 max-w-xs mx-auto uppercase leading-relaxed">Não foi possível conectar ao servidor de dados. Verifique sua conexão ou tente novamente.</p>
+                </div>
+                <button 
+                    onClick={() => window.location.reload()}
+                    className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-lg"
+                >
+                    Recarregar Painel
+                </button>
+            </div>
+        );
     }
 
     return (

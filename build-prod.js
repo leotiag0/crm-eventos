@@ -27,7 +27,7 @@ console.log('--- Iniciando consolidação de arquivos para produção ---');
 
 // 1. Copia a pasta API (pulando pastas de dados persistentes e dependências)
 console.log('Copiando pasta /api...');
-copyFolderSync('api', 'dist/api', ['uploads', 'logs', 'vendor']);
+copyFolderSync('api', 'dist/api', ['logs', 'vendor']);
 
 // 2. Copia o server.js
 console.log('Copiando server.js...');
