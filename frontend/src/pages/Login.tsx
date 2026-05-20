@@ -32,7 +32,7 @@ const Login: React.FC = () => {
                     <div className="inline-flex p-4 bg-primary/10 rounded-3xl">
                         <div className="size-24 rounded-2xl bg-white flex items-center justify-center text-white shadow-lg shadow-primary/20 overflow-hidden border border-slate-100 dark:border-white/10">
                             {config?.logo_path ? (
-                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain p-2" />
+                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain p-2" fetchPriority="high" loading="eager" />
                             ) : (
                                 <div className="bg-primary w-full h-full flex items-center justify-center">
                                     <Icons.Dashboard size={40} />

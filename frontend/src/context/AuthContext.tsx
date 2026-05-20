@@ -30,7 +30,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [authUser, setAuthUser] = useState<User | null>(null);
-    const [config, setConfig] = useState<Config | null>(null);
+    const [config, setConfig] = useState<Config | null>(() => {
+        try {
+            const cached = localStorage.getItem('crm_config');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed.cor_primaria) {
+                    const root = window.document.documentElement;
+                    root.style.setProperty('--color-primary', parsed.cor_primaria);
+                    root.style.setProperty('--color-primary-dark', parsed.cor_secundaria || parsed.cor_primaria);
+                }
+                if (parsed.nome_empresa) {
+                    document.title = parsed.nome_empresa + " - Sistema";
+                }
+                return parsed;
+            }
+        } catch (e) {
+            console.error('Erro ao ler crm_config do localStorage:', e);
+        }
+        return null;
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -50,6 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Apply theme globally if config exists
             if (configRes.data) {
+                try {
+                    localStorage.setItem('crm_config', JSON.stringify(configRes.data));
+                } catch (e) {
+                    console.error('Erro ao salvar crm_config no localStorage:', e);
+                }
                 applyTheme(configRes.data);
             }
         } catch (error) {

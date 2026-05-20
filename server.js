@@ -1,10 +1,12 @@
 const express = require('express');
+const compression = require('compression');
 const fs = require('fs');
 const path = require('path');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
 
 const app = express();
+app.use(compression());
 const PORT = process.env.PORT || 3000;
 const API_URL = process.env.API_URL || 'http://localhost:8000';
 

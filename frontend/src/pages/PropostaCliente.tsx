@@ -158,7 +158,7 @@ const PropostaCliente: React.FC = () => {
                     <div className="flex items-center gap-4 text-left">
                         <div className="size-16 rounded-2xl bg-white flex items-center justify-center text-primary shadow-2xl shadow-primary/10 overflow-hidden border border-slate-100">
                             {config?.logo_path ? (
-                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain p-2" />
+                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain p-2" fetchPriority="high" loading="eager" />
                             ) : (
                                 <Icons.Dashboard size={40} />
                             )}

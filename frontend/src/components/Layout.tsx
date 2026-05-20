@@ -72,7 +72,7 @@ const Layout: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <div className="size-10 shrink-0 rounded-lg bg-white dark:bg-white flex items-center justify-center text-white overflow-hidden shadow-sm border border-slate-200 dark:border-white/20">
                             {config?.logo_path ? (
-                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain" />
+                                <img src={config.logo_path} alt="Logo" className="w-full h-full object-contain" fetchPriority="high" loading="eager" />
                             ) : (
                                 <Icons.Dashboard size={24} className="text-primary" />
                             )}
