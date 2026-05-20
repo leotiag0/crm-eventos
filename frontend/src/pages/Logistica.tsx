@@ -334,7 +334,7 @@ const Logistica: React.FC = () => {
                                         onClick={handleFinalizeEvent}
                                         className="w-full md:w-auto px-12 py-5 bg-emerald-500 text-white rounded-[24px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                                     >
-                                        <Icons.CheckCircle size={20} className="hidden md:block" />
+                                        <Icons.Success size={20} className="hidden md:block" />
                                         Finalizar Evento
                                     </button>
                                 </div>
