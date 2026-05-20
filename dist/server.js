@@ -93,6 +93,9 @@ app.use(express.static(staticPath, {
 app.get('*', (req, res) => {
     const indexPath = path.join(staticPath, 'index.html');
     if (fs.existsSync(indexPath)) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.sendFile(indexPath);
     } else {
         res.status(404).send('Frontend não encontrado (index.html ausente).');
